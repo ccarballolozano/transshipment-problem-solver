@@ -22,13 +22,17 @@ def _parse_input_data():
     t_to_d = pd.read_csv(os.path.join(
         "data", "cost_transshipments_to_destinations.csv"), header=None)
     t_to_d = t_to_d.values
-    o_prod = pd.read_csv(os.path.join("data", "production_origins.csv"), header=None)
+    o_prod = pd.read_csv(os.path.join(
+        "data", "production_origins.csv"), header=None)
     o_prod = o_prod.values.reshape((-1))
-    t_prod = pd.read_csv(os.path.join("data", "production_transshipments.csv"), header=None)
+    t_prod = pd.read_csv(os.path.join(
+        "data", "production_transshipments.csv"), header=None)
     t_prod = t_prod.values.reshape((-1))
-    d_dem = pd.read_csv(os.path.join("data", "demand_destinations.csv"), header=None)
+    d_dem = pd.read_csv(os.path.join(
+        "data", "demand_destinations.csv"), header=None)
     d_dem = d_dem.values.reshape((-1))
-    t_dem = pd.read_csv(os.path.join("data", "demand_transshipments.csv"), header=None)
+    t_dem = pd.read_csv(os.path.join(
+        "data", "demand_transshipments.csv"), header=None)
     t_dem = t_dem.values.reshape((-1))
     n_o = o_to_d.shape[0]
     n_d = o_to_d.shape[1]
@@ -68,7 +72,7 @@ def _build_constraint_1(n_o, n_d, n_t, o_prod):
     Production at origins
     """
     n_vars = (n_o + n_t) * (n_d + n_t)
-    b_ub_1 = o_prod.reshape((-1, 1))
+    b_ub_1 = o_prod
     A_ub_1 = np.zeros(shape=(n_o, n_vars))
     for i in range(n_o):
         # origin i to destinations
@@ -83,7 +87,7 @@ def _build_constraint_2(n_o, n_d, n_t, t_prod):
     Production at transshipments.
     """
     n_vars = (n_o + n_t) * (n_d + n_t)
-    b_ub_2 = t_prod.reshape((-1, 1))
+    b_ub_2 = t_prod
     A_ub_2 = np.zeros(shape=(n_t, n_vars))
     for i in range(n_t):
         # transshipment i to destinations
@@ -97,7 +101,7 @@ def _build_constraint_2(n_o, n_d, n_t, t_prod):
 
 def _build_constraint_3(n_o, n_d, n_t, d_dem):
     n_vars = (n_o + n_t) * (n_d + n_t)
-    b_eq_1 = d_dem.reshape((-1, 1))
+    b_eq_1 = d_dem
     A_eq_1 = np.zeros(shape=(n_d, n_vars))
     for i in range(n_d):
         # origins to destination i
@@ -111,15 +115,15 @@ def _build_constraint_3(n_o, n_d, n_t, d_dem):
 
 def _build_constraint_4(n_o, n_d, n_t, t_dem):
     n_vars = (n_o + n_t) * (n_d + n_t)
-    b_eq_2 = t_dem.reshape((-1, 1))
+    b_eq_2 = t_dem
     A_eq_2 = np.zeros(shape=(n_t, n_vars))
     for i in range(n_t):
         # origins to transshipment i
         for j in range(n_o):
-            A_eq_2[i, j * (n_d + n_t) + n_o + i] = 1  # origin j
+            A_eq_2[i, j * (n_d + n_t) + n_d + i] = 1  # origin j
         # transshipments to transshipmment i
         for j in range(n_t):
-            A_eq_2[i, (n_o + j) * (n_d + n_t) + n_o + i] = 1  # transshipment j
+            A_eq_2[i, (n_o + j) * (n_d + n_t) + n_d + i] = 1  # transshipment j
     return A_eq_2, b_eq_2
 
 
@@ -132,24 +136,16 @@ def _join_constraints(A_ub_1, A_ub_2, A_eq_1, A_eq_2,
     return A_ub, A_eq, b_ub, b_eq
 
 
-def main():
+def build_and_solve():
     o_to_d, o_to_t, t_to_t, t_to_d, o_prod, t_prod, d_dem, t_dem, n_o, n_d, n_t = _parse_input_data()
     c = _build_coefficients(o_to_d, o_to_t, t_to_d, t_to_t)
-    print('c: ', c.shape)
-    print(c)
     A_ub_1, b_ub_1 = _build_constraint_1(n_o, n_d, n_t, o_prod)
-    print('A_ub_1: ', A_ub_1.shape)
-    print(A_ub_1)
     A_ub_2, b_ub_2 = _build_constraint_2(n_o, n_d, n_t, t_prod)
-    print('A_ub_2: ', A_ub_2.shape)
-    print(A_ub_2)
     A_eq_1, b_eq_1 = _build_constraint_3(n_o, n_d, n_t, d_dem)
-    print('A_eq_1: ', A_eq_1.shape)
-    print(A_eq_1)
     A_eq_2, b_eq_2 = _build_constraint_4(n_o, n_d, n_t, t_dem)
-    print('A_eq_2: ', A_eq_2.shape)
-    print(A_eq_2)
-    A_ub, A_eq, b_ub, b_eq = _join_constraints(A_ub_1, A_ub_2, A_eq_1, A_eq_2, b_ub_1, b_ub_2, b_eq_1, b_eq_2)
+    A_ub, A_eq, b_ub, b_eq = _join_constraints(
+        A_ub_1, A_ub_2, A_eq_1, A_eq_2, b_ub_1, b_ub_2, b_eq_1, b_eq_2)
+    """
     np.savetxt("c.csv", c, fmt="%i", delimiter=",")
     np.savetxt("A_ub_1.csv", A_ub_1, fmt="%i", delimiter=",")
     np.savetxt("A_ub_2.csv", A_ub_2, fmt="%i", delimiter=",")
@@ -159,9 +155,50 @@ def main():
     np.savetxt("b_ub_2.csv", b_ub_2, fmt="%i", delimiter=",")
     np.savetxt("b_eq_1.csv", b_eq_1, fmt="%i", delimiter=",")
     np.savetxt("b_eq_2.csv", b_eq_2, fmt="%i", delimiter=",")
+    """
+    res = linprog(c, A_ub, b_ub, A_eq, b_eq)
+    status_options = {0: "Optimization terminated successfully",
+                      1: "Iteration limit reached",
+                      2: "Problem appears to be infeasible",
+                      3: "Problem appears to be unbounded"}
+    if res.success:
+        print("Optimization terminated successfully")
+        opt_val = res.fun
+        print("Optimal value is %f" % (opt_val))
+        res_x = np.array(res.x)
+        res_x = res_x.reshape((n_o + n_t, n_d + n_t))
+        opt_o_to_d = res_x[: n_o, : n_d]
+        opt_o_to_t = res_x[: n_o, n_d:]
+        opt_t_to_d = res_x[n_o:, : n_d]
+        opt_t_to_t = res_x[n_o:, n_d:]
+        return opt_val, opt_o_to_d, opt_o_to_t, opt_t_to_d, opt_t_to_t
+    else:
+        print(status_options[res.status])
+        return -1, -1, -1, -1, -1
 
-    result = linprog(c, A_ub, b_ub, A_eq, b_eq)
-    print(result.status)
+
+def output_results(opt_o_to_d, opt_o_to_t, opt_t_to_d, opt_t_to_t):
+    np.savetxt(os.path.join("output", "opt_value.csv"),
+               opt_o_to_d, fmt="%10.4f", delimiter=",")
+    np.savetxt(os.path.join("output", "opt_origins_to_destinations.csv"),
+               opt_o_to_d, fmt="%10.4f", delimiter=",")
+    np.savetxt(os.path.join("output", "opt_origins_to_transshipments.csv"),
+               opt_o_to_t, fmt="%10.4f", delimiter=",")
+    np.savetxt(os.path.join("output", "opt_transshipments_to_destinations.csv"),
+               opt_t_to_d, fmt="%10.4f", delimiter=",")
+    np.savetxt(os.path.join("output", "opt_transshipments_to_transshipments.csv"),
+               opt_t_to_t, fmt="%10.4f", delimiter=",")
+
+
+def main():
+    opt_val, opt_o_to_d, opt_o_to_t, opt_t_to_d, opt_t_to_t = build_and_solve()
+    if opt_val == -1:
+        return
+    else:
+        pass
+    output_results(opt_o_to_d, opt_o_to_t, opt_t_to_d, opt_t_to_t)
+    return
+
 
 if __name__ == "__main__":
     main()
