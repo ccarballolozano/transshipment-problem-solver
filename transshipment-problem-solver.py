@@ -1,4 +1,4 @@
-import scipy as sp
+from scipy.optimize import linprog
 import numpy as np
 import pandas as pd
 import os
@@ -59,7 +59,7 @@ def _build_coefficients(o_to_d, o_to_t, t_to_d, t_to_t):
     c = np.concatenate((c, o_to_t), axis=1)
     aux = np.concatenate((t_to_d, t_to_t), axis=1)
     c = np.concatenate((c, aux), axis=0)
-    c.reshape((-1, 1))
+    c = c.reshape((-1))
     return c
 
 
@@ -125,16 +125,43 @@ def _build_constraint_4(n_o, n_d, n_t, t_dem):
 
 def _join_constraints(A_ub_1, A_ub_2, A_eq_1, A_eq_2,
                       b_ub_1, b_ub_2, b_eq_1, b_eq_2):
-    A_ub = np.concatenate((A_ub_1, A_ub_2), axis=1)
-    b_ub = np.concatenate((b_ub_1, b_ub_2), axis=1)
-    A_eq = np.concatenate((A_eq_1, A_eq_2), axis=1)
-    b_eq = np.concatenate((b_eq_1, b_eq_2), axis=1)
+    A_ub = np.concatenate((A_ub_1, A_ub_2), axis=0)
+    b_ub = np.concatenate((b_ub_1, b_ub_2), axis=0)
+    A_eq = np.concatenate((A_eq_1, A_eq_2), axis=0)
+    b_eq = np.concatenate((b_eq_1, b_eq_2), axis=0)
     return A_ub, A_eq, b_ub, b_eq
 
 
 def main():
     o_to_d, o_to_t, t_to_t, t_to_d, o_prod, t_prod, d_dem, t_dem, n_o, n_d, n_t = _parse_input_data()
+    c = _build_coefficients(o_to_d, o_to_t, t_to_d, t_to_t)
+    print('c: ', c.shape)
+    print(c)
+    A_ub_1, b_ub_1 = _build_constraint_1(n_o, n_d, n_t, o_prod)
+    print('A_ub_1: ', A_ub_1.shape)
+    print(A_ub_1)
+    A_ub_2, b_ub_2 = _build_constraint_2(n_o, n_d, n_t, t_prod)
+    print('A_ub_2: ', A_ub_2.shape)
+    print(A_ub_2)
+    A_eq_1, b_eq_1 = _build_constraint_3(n_o, n_d, n_t, d_dem)
+    print('A_eq_1: ', A_eq_1.shape)
+    print(A_eq_1)
+    A_eq_2, b_eq_2 = _build_constraint_4(n_o, n_d, n_t, t_dem)
+    print('A_eq_2: ', A_eq_2.shape)
+    print(A_eq_2)
+    A_ub, A_eq, b_ub, b_eq = _join_constraints(A_ub_1, A_ub_2, A_eq_1, A_eq_2, b_ub_1, b_ub_2, b_eq_1, b_eq_2)
+    np.savetxt("c.csv", c, fmt="%i", delimiter=",")
+    np.savetxt("A_ub_1.csv", A_ub_1, fmt="%i", delimiter=",")
+    np.savetxt("A_ub_2.csv", A_ub_2, fmt="%i", delimiter=",")
+    np.savetxt("A_eq_1.csv", A_eq_1, fmt="%i", delimiter=",")
+    np.savetxt("A_eq_2.csv", A_eq_2, fmt="%i", delimiter=",")
+    np.savetxt("b_ub_1.csv", b_ub_1, fmt="%i", delimiter=",")
+    np.savetxt("b_ub_2.csv", b_ub_2, fmt="%i", delimiter=",")
+    np.savetxt("b_eq_1.csv", b_eq_1, fmt="%i", delimiter=",")
+    np.savetxt("b_eq_2.csv", b_eq_2, fmt="%i", delimiter=",")
 
+    result = linprog(c, A_ub, b_ub, A_eq, b_eq)
+    print(result.status)
 
 if __name__ == "__main__":
     main()
