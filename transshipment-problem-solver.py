@@ -11,25 +11,25 @@ def _parse_input_data():
     difference between them and adding the value L.
     """
     o_to_d = pd.read_csv(os.path.join(
-        "data", "cost_origins_to_destinations.csv"))
+        "data", "cost_origins_to_destinations.csv"), header=None)
     o_to_d = o_to_d.values
     o_to_t = pd.read_csv(os.path.join(
-        "data", "cost_origins_to_transshipments.csv"))
+        "data", "cost_origins_to_transshipments.csv"), header=None)
     o_to_t = o_to_t.values
     t_to_t = pd.read_csv(os.path.join(
-        "data", "cost_transshipments_to_transshipments.csv"))
+        "data", "cost_transshipments_to_transshipments.csv"), header=None)
     t_to_t = t_to_t.values
     t_to_d = pd.read_csv(os.path.join(
-        "data", "cost_transshipments_to_destinations.csv"))
+        "data", "cost_transshipments_to_destinations.csv"), header=None)
     t_to_d = t_to_d.values
-    o_prod = pd.read_csv(os.path.join("data", "production_origins.csv"))
-    o_prod = o_prod.values
-    t_prod = pd.read_csv(os.path.join("data", "production_transshipments.csv"))
-    t_prod = t_prod.values
-    d_dem = pd.read_csv(os.path.join("data", "demand_destinations.csv"))
-    d_dem = d_dem.values
-    t_dem = pd.read_csv(os.path.join("data", "demand_transshipments.csv"))
-    t_dem = t_dem.values
+    o_prod = pd.read_csv(os.path.join("data", "production_origins.csv"), header=None)
+    o_prod = o_prod.values.reshape((-1))
+    t_prod = pd.read_csv(os.path.join("data", "production_transshipments.csv"), header=None)
+    t_prod = t_prod.values.reshape((-1))
+    d_dem = pd.read_csv(os.path.join("data", "demand_destinations.csv"), header=None)
+    d_dem = d_dem.values.reshape((-1))
+    t_dem = pd.read_csv(os.path.join("data", "demand_transshipments.csv"), header=None)
+    t_dem = t_dem.values.reshape((-1))
     n_o = o_to_d.shape[0]
     n_d = o_to_d.shape[1]
     n_t = o_to_t.shape[1]
@@ -134,7 +134,6 @@ def _join_constraints(A_ub_1, A_ub_2, A_eq_1, A_eq_2,
 
 def main():
     o_to_d, o_to_t, t_to_t, t_to_d, o_prod, t_prod, d_dem, t_dem, n_o, n_d, n_t = _parse_input_data()
-    print(t_prod, t_dem)
 
 
 if __name__ == "__main__":
