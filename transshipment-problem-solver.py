@@ -49,7 +49,7 @@ def _parse_input_data():
     L = np.sum(o_prod) + np.sum(t_prod)
     t_prod = t_prod + L
     t_dem = t_dem + L
-    return o_to_d, o_to_t, t_to_t, t_to_d, o_prod, t_prod, d_dem, t_dem, n_o, n_d, n_t
+    return o_to_d, o_to_t, t_to_t, t_to_d, o_prod, t_prod, d_dem, t_dem, n_o, n_d, n_t, L
 
 # First are origins, then transshipments and finally destinations
 
@@ -137,7 +137,7 @@ def _join_constraints(A_ub_1, A_ub_2, A_eq_1, A_eq_2,
 
 
 def build_and_solve():
-    o_to_d, o_to_t, t_to_t, t_to_d, o_prod, t_prod, d_dem, t_dem, n_o, n_d, n_t = _parse_input_data()
+    o_to_d, o_to_t, t_to_t, t_to_d, o_prod, t_prod, d_dem, t_dem, n_o, n_d, n_t, L = _parse_input_data()
     c = _build_coefficients(o_to_d, o_to_t, t_to_d, t_to_t)
     A_ub_1, b_ub_1 = _build_constraint_1(n_o, n_d, n_t, o_prod)
     A_ub_2, b_ub_2 = _build_constraint_2(n_o, n_d, n_t, t_prod)
@@ -171,15 +171,18 @@ def build_and_solve():
         opt_o_to_t = res_x[: n_o, n_d:]
         opt_t_to_d = res_x[n_o:, : n_d]
         opt_t_to_t = res_x[n_o:, n_d:]
+        # Substract L to the variables affected by the variable change
+        for i in range(opt_t_to_t.shape[0]):
+            opt_t_to_t[i, i] = L - opt_t_to_t[i, i]
         return opt_val, opt_o_to_d, opt_o_to_t, opt_t_to_d, opt_t_to_t
     else:
         print(status_options[res.status])
         return -1, -1, -1, -1, -1
 
 
-def output_results(opt_o_to_d, opt_o_to_t, opt_t_to_d, opt_t_to_t):
+def output_results(opt_val, opt_o_to_d, opt_o_to_t, opt_t_to_d, opt_t_to_t):
     np.savetxt(os.path.join("output", "opt_value.csv"),
-               opt_o_to_d, fmt="%10.4f", delimiter=",")
+               np.array(opt_val).reshape((-1)), fmt="%10.4f", delimiter=",")
     np.savetxt(os.path.join("output", "opt_origins_to_destinations.csv"),
                opt_o_to_d, fmt="%10.4f", delimiter=",")
     np.savetxt(os.path.join("output", "opt_origins_to_transshipments.csv"),
@@ -196,7 +199,7 @@ def main():
         return
     else:
         pass
-    output_results(opt_o_to_d, opt_o_to_t, opt_t_to_d, opt_t_to_t)
+    output_results(opt_val, opt_o_to_d, opt_o_to_t, opt_t_to_d, opt_t_to_t)
     return
 
 
