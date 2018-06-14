@@ -2,7 +2,7 @@ from scipy.optimize import linprog
 import numpy as np
 import pandas as pd
 import os
-from lib import getmethod
+from lib import getmethod, exportmethod
 import argparse
 
 
@@ -51,7 +51,22 @@ def _parse_input_data(in_data_folder):
     L = np.sum(o_prod) + np.sum(t_prod)
     t_prod = t_prod + L
     t_dem = t_dem + L
-    return o_to_d, o_to_t, t_to_t, t_to_d, o_prod, t_prod, d_dem, t_dem, n_o, n_d, n_t, L
+    if os.path.isfile(os.path.join(in_data_folder, "origins_names.csv")):
+        o_names = pd.read_csv(os.path.join(
+            in_data_folder, "origins_names.csv"), header=None).iloc[0, :]
+    else:
+        o_names = ["O" + str(i + 1) for i in range(n_o)]
+    if os.path.isfile(os.path.join(in_data_folder, "destinations_names.csv")):
+        o_names = pd.read_csv(os.path.join(
+            in_data_folder, "destinations_names.csv"), header=None).iloc[0, :]
+    else:
+        o_names = ["D" + str(i + 1) for i in range(n_d)]
+    if os.path.isfile(os.path.join(in_data_folder, "transshipents_names.csv")):
+        o_names = pd.read_csv(os.path.join(
+            in_data_folder, "transshipents_names.csv"), header=None).iloc[0, :]
+    else:
+        o_names = ["T" + str(i + 1) for i in range(n_t)]
+    return o_to_d, o_to_t, t_to_t, t_to_d, o_prod, t_prod, d_dem, t_dem, n_o, n_d, n_t, L, o_names, d_names, t_names
 
 # First are origins, then transshipments and finally destinations
 
@@ -140,7 +155,8 @@ def _join_constraints(A_ub_1, A_ub_2, A_eq_1, A_eq_2,
 
 
 def build_and_solve(in_data_folder):
-    o_to_d, o_to_t, t_to_t, t_to_d, o_prod, t_prod, d_dem, t_dem, n_o, n_d, n_t, L = _parse_input_data(in_data_folder)
+    o_to_d, o_to_t, t_to_t, t_to_d, o_prod, t_prod, d_dem, t_dem, n_o, n_d, n_t, L = _parse_input_data(
+        in_data_folder)
     c = _build_coefficients(o_to_d, o_to_t, t_to_d, t_to_t)
     A_ub_1, b_ub_1 = _build_constraint_1(n_o, n_d, n_t, o_prod)
     A_ub_2, b_ub_2 = _build_constraint_2(n_o, n_d, n_t, t_prod)
@@ -215,13 +231,16 @@ def main(args):
             args.costperkm, args.keyfile, "data_in", "data_in")
     else:
         print("Not a valid get data method")
-    opt_val, opt_o_to_d, opt_o_to_t, opt_t_to_d, opt_t_to_t = build_and_solve("data_in")
+    opt_val, opt_o_to_d, opt_o_to_t, opt_t_to_d, opt_t_to_t = build_and_solve(
+        "data_in")
     if opt_val == -1:
         return
     else:
         pass
     _output_results("data_out", opt_val, opt_o_to_d,
                     opt_o_to_t, opt_t_to_d, opt_t_to_t)
+
+    exportmethod.to_complete_file("data_out")
     return
 
 
