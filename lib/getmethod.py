@@ -49,7 +49,8 @@ def from_maps_api(cost_per_km, api_key_file, from_folder, to_folder):
             url = 'https://maps.googleapis.com/maps/api/distancematrix/json?origins=%s&destinations=%s&mode=driving&sensor=false&key=%s' % (
                 url_origin, url_destination, api_key)
             # print(url)
-            r = urllib.request.urlopen(url).read()
+            r = urllib.request.urlopen(url).read().decode('utf8')
+            # print(r)
             json_data = json.loads(r)
             distance = json_data['rows'][0]['elements'][0]['distance']['value']
             o_to_d[i, j] = cost_per_km * distance / 1000
@@ -68,7 +69,8 @@ def from_maps_api(cost_per_km, api_key_file, from_folder, to_folder):
             url = 'https://maps.googleapis.com/maps/api/distancematrix/json?origins=%s&destinations=%s&mode=driving&sensor=false&key=%s' % (
                 url_origin, url_destination, api_key)
             # print(url)
-            r = urllib.request.urlopen(url).read()
+            r = urllib.request.urlopen(url).read().decode('utf8')
+            # print(r)
             json_data = json.loads(r)
             distance = json_data['rows'][0]['elements'][0]['distance']['value']
             o_to_t[i, j] = cost_per_km * distance
@@ -87,7 +89,7 @@ def from_maps_api(cost_per_km, api_key_file, from_folder, to_folder):
             url = 'https://maps.googleapis.com/maps/api/distancematrix/json?origins=%s&destinations=%s&mode=driving&sensor=false&key=%s' % (
                 url_origin, url_destination, api_key)
             # print(url)
-            r = urllib.request.urlopen(url).read()
+            r = urllib.request.urlopen(url).read().decode('utf8')
             json_data = json.loads(r)
             distance = json_data['rows'][0]['elements'][0]['distance']['value']
             t_to_d[i, j] = cost_per_km * distance
@@ -108,7 +110,7 @@ def from_maps_api(cost_per_km, api_key_file, from_folder, to_folder):
             url = 'https://maps.googleapis.com/maps/api/distancematrix/json?origins=%s&destinations=%s&mode=driving&sensor=false&key=%s' % (
                 url_origin, url_destination, api_key)
             # print(url)
-            r = urllib.request.urlopen(url).read()
+            r = urllib.request.urlopen(url).read().decode('utf8')
             json_data = json.loads(r)
             distance = json_data['rows'][0]['elements'][0]['distance']['value']
             t_to_t[i, j] = cost_per_km * distance
@@ -123,27 +125,31 @@ def from_maps_api(cost_per_km, api_key_file, from_folder, to_folder):
     np.savetxt(os.path.join(to_folder, "demand_destinations.csv"), d_demand.values, fmt="%.5f", delimiter=",")
     np.savetxt(os.path.join(to_folder, "demand_transshipments.csv"), t_demand.values, fmt="%.5f", delimiter=",")
     # Write names
-    o_ids = []
-    d_ids = []
-    t_ids = []
+    o_id = []
+    d_id = []
+    t_id = []
     for i in range(len(o_name)):
         if pd.isna(o_name[i]):
-            o_ids.append(str(o_lat[i]) + ' ' + str(o_long[i]))
+            o_id.append(str(o_lat[i]) + ' ' + str(o_long[i]))
         else:
-            o_ids.append(str(o_name[i]))
+            o_id.append(str(o_name[i]))
     for i in range(len(d_name)):
         if pd.isna(d_name[i]):
-            d_ids.append(str(d_lat[i]) + ' ' + str(d_long[i]))
+            d_id.append(str(d_lat[i]) + ' ' + str(d_long[i]))
         else:
-            d_ids.append(str(d_name[i]))
+            d_id.append(str(d_name[i]))
     for i in range(len(t_name)):
         if pd.isna(t_name[i]):
-            t_ids.append(str(t_lat[i]) + ' ' + str(t_long[i]))
+            t_id.append(str(t_lat[i]) + ' ' + str(t_long[i]))
         else:
-            t_ids.append(str(t_name[i]))
-    np.savetxt("ids_origins.csv", o_ids, delimiter=",", fmt='%s')
-    np.savetxt("ids_destinations.csv", d_ids, delimiter=",", fmt='%s')
-    np.savetxt("ids_transshipments.csv", t_ids, delimiter=",", fmt='%s')
-    #out = csv.writer(open(os.join.path(to_folder, "ids_origins.csv"), "w"), delimiter=',', quoting=csv.QUOTE_ALL)
-    #out = csv.writer(open(os.join.path(to_folder, "ids_origins.csv"), "w"), delimiter=',', quoting=csv.QUOTE_ALL)
+            t_id.append(str(t_name[i]))
+    with open(os.path.join(to_folder, "id_origins.csv"), "w") as f:
+        out = csv.writer(f, delimiter=',')
+        out.writerow(o_id)
+    with open(os.path.join(to_folder, "id_destinations.csv"), "w") as f:
+        out = csv.writer(f, delimiter=',')
+        out.writerow(d_id)
+    with open(os.path.join(to_folder, "id_transshipments.csv"), "w") as f:
+        out = csv.writer(f, delimiter=',')
+        out.writerow(t_id)
     return

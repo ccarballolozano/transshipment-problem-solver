@@ -51,22 +51,28 @@ def _parse_input_data(in_data_folder):
     L = np.sum(o_prod) + np.sum(t_prod)
     t_prod = t_prod + L
     t_dem = t_dem + L
-    if os.path.isfile(os.path.join(in_data_folder, "origins_names.csv")):
-        o_names = pd.read_csv(os.path.join(
-            in_data_folder, "origins_names.csv"), header=None).iloc[0, :]
+    if os.path.isfile(os.path.join(in_data_folder, "id_origins.csv")):
+        df = pd.read_csv(os.path.join(in_data_folder, "id_origins.csv"), header=None, delimiter=",")
+        o_id = []
+        for i in range(df.shape[1]):
+            o_id.append(df.iloc[0, i])
     else:
-        o_names = ["O" + str(i + 1) for i in range(n_o)]
-    if os.path.isfile(os.path.join(in_data_folder, "destinations_names.csv")):
-        o_names = pd.read_csv(os.path.join(
-            in_data_folder, "destinations_names.csv"), header=None).iloc[0, :]
+        o_id = ["O" + str(i + 1) for i in range(n_o)]
+    if os.path.isfile(os.path.join(in_data_folder, "id_destinations.csv")):
+        df = pd.read_csv(os.path.join(in_data_folder, "id_destinations.csv"), header=None, delimiter=",")
+        d_id = []
+        for i in range(df.shape[1]):
+            d_id.append(df.iloc[0, i])
     else:
-        o_names = ["D" + str(i + 1) for i in range(n_d)]
-    if os.path.isfile(os.path.join(in_data_folder, "transshipents_names.csv")):
-        o_names = pd.read_csv(os.path.join(
-            in_data_folder, "transshipents_names.csv"), header=None).iloc[0, :]
+        d_id = ["D" + str(i + 1) for i in range(n_d)]
+    if os.path.isfile(os.path.join(in_data_folder, "id_transshipments.csv")):
+        df = pd.read_csv(os.path.join(in_data_folder, "id_transshipments.csv"), header=None, delimiter=",")
+        t_id = []
+        for i in range(df.shape[1]):
+            t_id.append(df.iloc[0, i])
     else:
-        o_names = ["T" + str(i + 1) for i in range(n_t)]
-    return o_to_d, o_to_t, t_to_t, t_to_d, o_prod, t_prod, d_dem, t_dem, n_o, n_d, n_t, L, o_names, d_names, t_names
+        t_id = ["T" + str(i + 1) for i in range(n_t)]
+    return o_to_d, o_to_t, t_to_t, t_to_d, o_prod, t_prod, d_dem, t_dem, n_o, n_d, n_t, L, o_id, d_id, t_id
 
 # First are origins, then transshipments and finally destinations
 
@@ -81,7 +87,6 @@ def _build_coefficients(o_to_d, o_to_t, t_to_d, t_to_t):
     aux = np.concatenate((t_to_d, t_to_t), axis=1)
     c = np.concatenate((c, aux), axis=0)
     c = c.reshape((-1))
-    print(c)
     return c
 
 
@@ -153,9 +158,7 @@ def _join_constraints(A_ub_1, A_ub_2, A_eq_1, A_eq_2, b_ub_1, b_ub_2, b_eq_1, b_
     return A_ub, A_eq, b_ub, b_eq
 
 
-def build_and_solve(in_data_folder):
-    o_to_d, o_to_t, t_to_t, t_to_d, o_prod, t_prod, d_dem, t_dem, n_o, n_d, n_t, L, o_names, d_names, t_names = _parse_input_data(
-        in_data_folder)
+def build_and_solve(o_to_d, o_to_t, t_to_t, t_to_d, o_prod, t_prod, d_dem, t_dem, n_o, n_d, n_t, L):
     c = _build_coefficients(o_to_d, o_to_t, t_to_d, t_to_t)
     A_ub_1, b_ub_1 = _build_constraint_1(n_o, n_d, n_t, o_prod)
     A_ub_2, b_ub_2 = _build_constraint_2(n_o, n_d, n_t, t_prod)
@@ -226,18 +229,17 @@ def main(args):
     if args.getmethod == "default":
         pass
     elif args.getmethod == "maps":
-        getmethod.from_maps_api(
-            args.costperkm, args.keyfile, "data_in", "data_in")
+        getmethod.from_maps_api(args.costperkm, args.keyfile, "data_in", "data_in")
     else:
         print("Not a valid get data method")
-    opt_val, opt_o_to_d, opt_o_to_t, opt_t_to_d, opt_t_to_t = build_and_solve(
-        "data_in")
+    o_to_d, o_to_t, t_to_t, t_to_d, o_prod, t_prod, d_dem, t_dem, n_o, n_d, n_t, L, o_id, d_id, t_id = _parse_input_data("data_in")
+    opt_val, opt_o_to_d, opt_o_to_t, opt_t_to_d, opt_t_to_t = build_and_solve(o_to_d, o_to_t, t_to_t, t_to_d, o_prod, t_prod, d_dem, t_dem, n_o, n_d, n_t, L)
     if opt_val == -1:
         return
     else:
         pass
     _output_results("data_out", opt_val, opt_o_to_d, opt_o_to_t, opt_t_to_d, opt_t_to_t)
-    exportmethod.to_complete_file("data_out")
+    exportmethod.to_complete_file("data_out", o_id, d_id, t_id)
     return
 
 

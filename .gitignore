@@ -2,4 +2,4 @@ transshipment-problem-solver.sublime-project
 transshipment-problem-solver.sublime-workspace
 venv/
 __pycache__/
-*/__pycache__/
+lib/__pycache__/
