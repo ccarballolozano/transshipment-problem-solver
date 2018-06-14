@@ -145,8 +145,7 @@ def _build_constraint_4(n_o, n_d, n_t, t_dem):
     return A_eq_2, b_eq_2
 
 
-def _join_constraints(A_ub_1, A_ub_2, A_eq_1, A_eq_2,
-                      b_ub_1, b_ub_2, b_eq_1, b_eq_2):
+def _join_constraints(A_ub_1, A_ub_2, A_eq_1, A_eq_2, b_ub_1, b_ub_2, b_eq_1, b_eq_2):
     A_ub = np.concatenate((A_ub_1, A_ub_2), axis=0)
     b_ub = np.concatenate((b_ub_1, b_ub_2), axis=0)
     A_eq = np.concatenate((A_eq_1, A_eq_2), axis=0)
@@ -155,7 +154,7 @@ def _join_constraints(A_ub_1, A_ub_2, A_eq_1, A_eq_2,
 
 
 def build_and_solve(in_data_folder):
-    o_to_d, o_to_t, t_to_t, t_to_d, o_prod, t_prod, d_dem, t_dem, n_o, n_d, n_t, L = _parse_input_data(
+    o_to_d, o_to_t, t_to_t, t_to_d, o_prod, t_prod, d_dem, t_dem, n_o, n_d, n_t, L, o_names, d_names, t_names = _parse_input_data(
         in_data_folder)
     c = _build_coefficients(o_to_d, o_to_t, t_to_d, t_to_t)
     A_ub_1, b_ub_1 = _build_constraint_1(n_o, n_d, n_t, o_prod)
@@ -237,9 +236,7 @@ def main(args):
         return
     else:
         pass
-    _output_results("data_out", opt_val, opt_o_to_d,
-                    opt_o_to_t, opt_t_to_d, opt_t_to_t)
-
+    _output_results("data_out", opt_val, opt_o_to_d, opt_o_to_t, opt_t_to_d, opt_t_to_t)
     exportmethod.to_complete_file("data_out")
     return
 
