@@ -3,6 +3,7 @@ import numpy as np
 import urllib
 import os
 import json
+import csv
 
 
 def from_maps_api(cost_per_km, api_key_file, from_folder, to_folder):
@@ -121,4 +122,28 @@ def from_maps_api(cost_per_km, api_key_file, from_folder, to_folder):
     np.savetxt(os.path.join(to_folder, "production_transshipments.csv"), t_supply.values, fmt="%.5f", delimiter=",")
     np.savetxt(os.path.join(to_folder, "demand_destinations.csv"), d_demand.values, fmt="%.5f", delimiter=",")
     np.savetxt(os.path.join(to_folder, "demand_transshipments.csv"), t_demand.values, fmt="%.5f", delimiter=",")
+    # Write names
+    o_ids = []
+    d_ids = []
+    t_ids = []
+    for i in range(len(o_name)):
+        if pd.isna(o_name[i]):
+            o_ids.append(str(o_lat[i]) + ' ' + str(o_long[i]))
+        else:
+            o_ids.append(str(o_name[i]))
+    for i in range(len(d_name)):
+        if pd.isna(d_name[i]):
+            d_ids.append(str(d_lat[i]) + ' ' + str(d_long[i]))
+        else:
+            d_ids.append(str(d_name[i]))
+    for i in range(len(t_name)):
+        if pd.isna(t_name[i]):
+            t_ids.append(str(t_lat[i]) + ' ' + str(t_long[i]))
+        else:
+            t_ids.append(str(t_name[i]))
+    np.savetxt("ids_origins.csv", o_ids, delimiter=",", fmt='%s')
+    np.savetxt("ids_destinations.csv", d_ids, delimiter=",", fmt='%s')
+    np.savetxt("ids_transshipments.csv", t_ids, delimiter=",", fmt='%s')
+    #out = csv.writer(open(os.join.path(to_folder, "ids_origins.csv"), "w"), delimiter=',', quoting=csv.QUOTE_ALL)
+    #out = csv.writer(open(os.join.path(to_folder, "ids_origins.csv"), "w"), delimiter=',', quoting=csv.QUOTE_ALL)
     return
