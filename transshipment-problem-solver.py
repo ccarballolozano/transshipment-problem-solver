@@ -2,7 +2,6 @@ from scipy.optimize import linprog
 import numpy as np
 import pandas as pd
 import os
-import urllib
 from lib import getmethod
 import argparse
 
@@ -67,6 +66,7 @@ def _build_coefficients(o_to_d, o_to_t, t_to_d, t_to_t):
     aux = np.concatenate((t_to_d, t_to_t), axis=1)
     c = np.concatenate((c, aux), axis=0)
     c = c.reshape((-1))
+    print(c)
     return c
 
 
@@ -148,7 +148,7 @@ def build_and_solve(in_data_folder):
     A_eq_2, b_eq_2 = _build_constraint_4(n_o, n_d, n_t, t_dem)
     A_ub, A_eq, b_ub, b_eq = _join_constraints(
         A_ub_1, A_ub_2, A_eq_1, A_eq_2, b_ub_1, b_ub_2, b_eq_1, b_eq_2)
-    """
+    """ When errors arise, check this 
     np.savetxt("c.csv", c, fmt="%i", delimiter=",")
     np.savetxt("A_ub_1.csv", A_ub_1, fmt="%i", delimiter=",")
     np.savetxt("A_ub_2.csv", A_ub_2, fmt="%i", delimiter=",")

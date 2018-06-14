@@ -112,13 +112,13 @@ def from_maps_api(cost_per_km, api_key_file, from_folder, to_folder):
             distance = json_data['rows'][0]['elements'][0]['distance']['value']
             t_to_t[i, j] = cost_per_km * distance
     # Write cost functions
-    np.savetxt(os.path.join(to_folder, "cost_origins_to_destinations.csv"), o_to_d, fmt="%.5f")
-    np.savetxt(os.path.join(to_folder, "cost_origins_to_transshipments.csv"), o_to_t, fmt="%.5f")
-    np.savetxt(os.path.join(to_folder, "cost_transshipments_to_destinations.csv"), t_to_d, fmt="%.5f")
-    np.savetxt(os.path.join(to_folder, "cost_transshipments_to_transshipments.csv"), t_to_t, fmt="%.5f")
+    np.savetxt(os.path.join(to_folder, "cost_origins_to_destinations.csv"), o_to_d, fmt="%.5f", delimiter=",")
+    np.savetxt(os.path.join(to_folder, "cost_origins_to_transshipments.csv"), o_to_t, fmt="%.5f", delimiter=",")
+    np.savetxt(os.path.join(to_folder, "cost_transshipments_to_destinations.csv"), t_to_d, fmt="%.5f", delimiter=",")
+    np.savetxt(os.path.join(to_folder, "cost_transshipments_to_transshipments.csv"), t_to_t, fmt="%.5f", delimiter=",")
     # Write supplies and demands
-    np.savetxt(os.path.join(to_folder, "production_origins.csv"), o_supply.values, fmt="%.5f")
-    np.savetxt(os.path.join(to_folder, "production_transshipments.csv"), t_supply.values, fmt="%.5f")
-    np.savetxt(os.path.join(to_folder, "demand_destinations.csv"), d_demand.values, fmt="%.5f")
-    np.savetxt(os.path.join(to_folder, "demand_transshipments.csv"), t_demand.values, fmt="%.5f")
+    np.savetxt(os.path.join(to_folder, "production_origins.csv"), o_supply.values, fmt="%.5f", delimiter=",")
+    np.savetxt(os.path.join(to_folder, "production_transshipments.csv"), t_supply.values, fmt="%.5f", delimiter=",")
+    np.savetxt(os.path.join(to_folder, "demand_destinations.csv"), d_demand.values, fmt="%.5f", delimiter=",")
+    np.savetxt(os.path.join(to_folder, "demand_transshipments.csv"), t_demand.values, fmt="%.5f", delimiter=",")
     return
