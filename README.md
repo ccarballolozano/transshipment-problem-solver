@@ -22,6 +22,10 @@ Optional files are
   * id_origins.csv
   * id_destinations.csv
   * id_transshipments.csv
+  * capacity_origins_to_destinations.csv
+  * capacity_origins_to_transshipments.csv
+  * capacity_transshipments_to_destinations.csv
+  * capacity_transshipments_to_transshipments.csv
  
 To use the Google Maps Distance Matrix API method, the files that must be provided are different, and will automatically create the previous ones. The files that are needed are:
 
