@@ -6,7 +6,6 @@ import pandas as pd
 def to_complete_file(out_data_folder, o_id, d_id, t_id):
     rows = o_id + t_id
     cols = d_id + t_id
-    print(rows, cols)
     df = pd.DataFrame(index=rows, columns=cols)
     data = np.loadtxt(os.path.join(out_data_folder, "opt_origins_to_destinations.csv"),
                       delimiter=",")

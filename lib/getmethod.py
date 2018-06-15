@@ -6,7 +6,7 @@ import json
 import csv
 
 
-def from_maps_api(cost_per_km, api_key_file, from_folder, to_folder):
+def from_maps_api(api_key_file, from_folder, to_folder):
     # read distancematrix api key
     with open(api_key_file, 'r') as f:
         api_key = f.readline()
@@ -16,6 +16,7 @@ def from_maps_api(cost_per_km, api_key_file, from_folder, to_folder):
     o_lat = o_df['latitude']
     o_long = o_df['longitude']
     o_supply = o_df['supply']
+    o_cost = o_df['costperkm']
     d_df = pd.read_csv(os.path.join(
         from_folder, "destinations.csv"))
     d_name = d_df['name']
@@ -29,6 +30,7 @@ def from_maps_api(cost_per_km, api_key_file, from_folder, to_folder):
     t_long = t_df['longitude']
     t_supply = t_df['supply']
     t_demand = t_df['demand']
+    t_cost = t_df['costperkm']
     del o_df, d_df, t_df
     # Now get distance matrix via google maps API
     # by name, distancematrix is requested as
@@ -37,6 +39,10 @@ def from_maps_api(cost_per_km, api_key_file, from_folder, to_folder):
     # Origins to destinations
     o_to_d = np.zeros(shape=(len(o_name), len(d_name)))
     for i in range(len(o_name)):
+        if pd.isna(o_cost[i]):
+            cost_per_km = 1
+        else:
+            cost_per_km = o_cost[i]        
         if pd.isna(o_name.iloc[i]):
             url_origin = str(o_lat[i]) + ',' + str(o_long[i])
         else:
@@ -57,6 +63,10 @@ def from_maps_api(cost_per_km, api_key_file, from_folder, to_folder):
     # Origins to transshipments
     o_to_t = np.zeros(shape=(len(o_name), len(t_name)))
     for i in range(len(o_name)):
+        if pd.isna(o_cost[i]):
+            cost_per_km = 1
+        else:
+            cost_per_km = o_cost[i]
         if pd.isna(o_name.iloc[i]):
             url_origin = str(o_lat[i]) + ',' + str(o_long[i])
         else:
@@ -77,6 +87,10 @@ def from_maps_api(cost_per_km, api_key_file, from_folder, to_folder):
     # Transshipments to destinations
     t_to_d = np.zeros(shape=(len(t_name), len(d_name)))
     for i in range(len(t_name)):
+        if pd.isna(t_cost[i]):
+            cost_per_km = 1
+        else:
+            cost_per_km = t_cost[i]
         if pd.isna(t_name.iloc[i]):
             url_origin = str(t_lat[i]) + ',' + str(t_long[i])
         else:
@@ -96,6 +110,10 @@ def from_maps_api(cost_per_km, api_key_file, from_folder, to_folder):
     # Transshipments to transshipments
     t_to_t = np.zeros(shape=(len(t_name), len(t_name)))
     for i in range(len(t_name)):
+        if pd.isna(t_cost[i]):
+            cost_per_km = 1
+        else:
+            cost_per_km = t_cost[i]
         if pd.isna(t_name.iloc[i]):
             url_origin = str(t_lat[i]) + ',' + str(t_long[i])
         else:

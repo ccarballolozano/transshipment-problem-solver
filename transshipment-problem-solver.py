@@ -255,8 +255,6 @@ def parse_arguments():
     parser = argparse.ArgumentParser()
     parser.add_argument("-g", "--getmethod",
                         help="get data method", type=str, default="default")
-    parser.add_argument("-c", "--costperkm",
-                        help="cost per km distance", type=float, default=1)
     parser.add_argument("-k", "--keyfile",
                         help="maps distancematrix API key file", type=str, default="distancematrix_api_key.txt")
     return parser.parse_args()
@@ -266,8 +264,7 @@ def main(args):
     if args.getmethod == "default":
         pass
     elif args.getmethod == "maps":
-        getmethod.from_maps_api(
-            args.costperkm, args.keyfile, "data_in", "data_in")
+        getmethod.from_maps_api(args.keyfile, "data_in", "data_in")
     else:
         print("Not a valid get data method")
     o_to_d, o_to_t, t_to_t, t_to_d, o_prod, t_prod, d_dem, t_dem, n_o, n_d, n_t, L, o_id, d_id, t_id, o_to_d_cap, o_to_t_cap, t_to_d_cap, t_to_t_cap = _parse_input_data(
