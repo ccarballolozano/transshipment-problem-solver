@@ -3,5 +3,5 @@
 venv/
 *.pyc
 __pycache__/
-data_in/
-data_out/
+/data_in/
+/data_out/
