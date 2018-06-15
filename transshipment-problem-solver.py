@@ -52,27 +52,56 @@ def _parse_input_data(in_data_folder):
     t_prod = t_prod + L
     t_dem = t_dem + L
     if os.path.isfile(os.path.join(in_data_folder, "id_origins.csv")):
-        df = pd.read_csv(os.path.join(in_data_folder, "id_origins.csv"), header=None, delimiter=",")
+        df = pd.read_csv(os.path.join(
+            in_data_folder, "id_origins.csv"), header=None, delimiter=",")
         o_id = []
         for i in range(df.shape[1]):
             o_id.append(df.iloc[0, i])
     else:
         o_id = ["O" + str(i + 1) for i in range(n_o)]
     if os.path.isfile(os.path.join(in_data_folder, "id_destinations.csv")):
-        df = pd.read_csv(os.path.join(in_data_folder, "id_destinations.csv"), header=None, delimiter=",")
+        df = pd.read_csv(os.path.join(
+            in_data_folder, "id_destinations.csv"), header=None, delimiter=",")
         d_id = []
         for i in range(df.shape[1]):
             d_id.append(df.iloc[0, i])
     else:
         d_id = ["D" + str(i + 1) for i in range(n_d)]
     if os.path.isfile(os.path.join(in_data_folder, "id_transshipments.csv")):
-        df = pd.read_csv(os.path.join(in_data_folder, "id_transshipments.csv"), header=None, delimiter=",")
+        df = pd.read_csv(os.path.join(
+            in_data_folder, "id_transshipments.csv"), header=None, delimiter=",")
         t_id = []
         for i in range(df.shape[1]):
             t_id.append(df.iloc[0, i])
     else:
         t_id = ["T" + str(i + 1) for i in range(n_t)]
-    return o_to_d, o_to_t, t_to_t, t_to_d, o_prod, t_prod, d_dem, t_dem, n_o, n_d, n_t, L, o_id, d_id, t_id
+    # Edges capacities    
+    if os.path.isfile(os.path.join(in_data_folder, "capacity_origins_to_destinations.csv")):
+        df = pd.read_csv(os.path.join(
+            in_data_folder, "capacity_origins_to_destinations.csv"), header=None, delimiter=",")
+        o_to_d_cap = df.values
+    else:
+        o_to_d_cap = np.full((n_o, n_d), np.inf)
+    if os.path.isfile(os.path.join(in_data_folder, "capacity_origins_to_transshipments.csv")):
+        df = pd.read_csv(os.path.join(
+            in_data_folder, "capacity_origins_to_transshipments.csv"), header=None, delimiter=",")
+        o_to_t_cap = df.values
+    else:
+        o_to_t_cap = np.full((n_o, n_t), np.inf)
+    if os.path.isfile(os.path.join(in_data_folder, "capacity_transsipments_to_destinations.csv")):
+        df = pd.read_csv(os.path.join(
+            in_data_folder, "capacity_transshipments_to_destinations.csv"), header=None, delimiter=",")
+        t_to_d_cap = df.values
+    else:
+        t_to_d_cap = np.full((n_t, n_d))
+    if os.path.isfile(os.path.join(in_data_folder, "capacity_transshipments_to_transshipments.csv")):
+        df = pd.read_csv(os.path.join(
+            in_data_folder, "capacity_transshipments_to_transshipments.csv"), header=None, delimiter=",")
+        t_to_t_cap = df.values
+    else:
+        t_to_t_cap = np.full((n_t, n_t), np.inf)
+    return o_to_d, o_to_t, t_to_t, t_to_d, o_prod, t_prod, d_dem, t_dem, n_o, n_d, n_t, L,
+        o_id, d_id, t_id, o_to_d_cap, o_to_t_cap, t_to_d_cap, t_to_t_cap
 
 # First are origins, then transshipments and finally destinations
 
@@ -229,16 +258,20 @@ def main(args):
     if args.getmethod == "default":
         pass
     elif args.getmethod == "maps":
-        getmethod.from_maps_api(args.costperkm, args.keyfile, "data_in", "data_in")
+        getmethod.from_maps_api(
+            args.costperkm, args.keyfile, "data_in", "data_in")
     else:
         print("Not a valid get data method")
-    o_to_d, o_to_t, t_to_t, t_to_d, o_prod, t_prod, d_dem, t_dem, n_o, n_d, n_t, L, o_id, d_id, t_id = _parse_input_data("data_in")
-    opt_val, opt_o_to_d, opt_o_to_t, opt_t_to_d, opt_t_to_t = build_and_solve(o_to_d, o_to_t, t_to_t, t_to_d, o_prod, t_prod, d_dem, t_dem, n_o, n_d, n_t, L)
+    o_to_d, o_to_t, t_to_t, t_to_d, o_prod, t_prod, d_dem, t_dem, n_o, n_d, n_t, L, o_id, d_id, t_id = _parse_input_data(
+        "data_in")
+    opt_val, opt_o_to_d, opt_o_to_t, opt_t_to_d, opt_t_to_t = build_and_solve(
+        o_to_d, o_to_t, t_to_t, t_to_d, o_prod, t_prod, d_dem, t_dem, n_o, n_d, n_t, L)
     if opt_val == -1:
         return
     else:
         pass
-    _output_results("data_out", opt_val, opt_o_to_d, opt_o_to_t, opt_t_to_d, opt_t_to_t)
+    _output_results("data_out", opt_val, opt_o_to_d,
+                    opt_o_to_t, opt_t_to_d, opt_t_to_t)
     exportmethod.to_complete_file("data_out", o_id, d_id, t_id)
     return
 
