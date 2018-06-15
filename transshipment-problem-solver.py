@@ -8,9 +8,7 @@ import argparse
 
 def _parse_input_data(in_data_folder):
     """
-    Returns costs, productions and demands as separate numpy arrays.
-    It also recomputes production and demand of transshipments by
-    difference between them and adding the value L.
+    Returns values needed to build the model
     """
     o_to_d = pd.read_csv(os.path.join(
         in_data_folder, "cost_origins_to_destinations.csv"), header=None)
@@ -75,7 +73,7 @@ def _parse_input_data(in_data_folder):
             t_id.append(df.iloc[0, i])
     else:
         t_id = ["T" + str(i + 1) for i in range(n_t)]
-    # Edges capacities    
+    # Edges capacities
     if os.path.isfile(os.path.join(in_data_folder, "capacity_origins_to_destinations.csv")):
         df = pd.read_csv(os.path.join(
             in_data_folder, "capacity_origins_to_destinations.csv"), header=None, delimiter=",")
@@ -93,15 +91,14 @@ def _parse_input_data(in_data_folder):
             in_data_folder, "capacity_transshipments_to_destinations.csv"), header=None, delimiter=",")
         t_to_d_cap = df.values
     else:
-        t_to_d_cap = np.full((n_t, n_d))
+        t_to_d_cap = np.full((n_t, n_d), np.inf)
     if os.path.isfile(os.path.join(in_data_folder, "capacity_transshipments_to_transshipments.csv")):
         df = pd.read_csv(os.path.join(
             in_data_folder, "capacity_transshipments_to_transshipments.csv"), header=None, delimiter=",")
         t_to_t_cap = df.values
     else:
         t_to_t_cap = np.full((n_t, n_t), np.inf)
-    return o_to_d, o_to_t, t_to_t, t_to_d, o_prod, t_prod, d_dem, t_dem, n_o, n_d, n_t, L,
-        o_id, d_id, t_id, o_to_d_cap, o_to_t_cap, t_to_d_cap, t_to_t_cap
+    return o_to_d, o_to_t, t_to_t, t_to_d, o_prod, t_prod, d_dem, t_dem, n_o, n_d, n_t, L, o_id, d_id, t_id, o_to_d_cap, o_to_t_cap, t_to_d_cap, t_to_t_cap
 
 # First are origins, then transshipments and finally destinations
 
@@ -179,6 +176,16 @@ def _build_constraint_4(n_o, n_d, n_t, t_dem):
     return A_eq_2, b_eq_2
 
 
+def _build_bounds(o_to_d_cap, o_to_t_cap, t_to_d_cap, t_to_t_cap):
+    upper_bounds = o_to_d_cap
+    upper_bounds = np.concatenate((upper_bounds, o_to_t_cap), axis=1)
+    aux = np.concatenate((t_to_d_cap, t_to_t_cap), axis=1)
+    upper_bounds = np.concatenate((upper_bounds, aux), axis=0)
+    upper_bounds = upper_bounds.reshape((-1))
+    lower_bounds = np.full_like(upper_bounds, 0, dtype=np.int8)
+    return list(zip(lower_bounds, upper_bounds))
+
+
 def _join_constraints(A_ub_1, A_ub_2, A_eq_1, A_eq_2, b_ub_1, b_ub_2, b_eq_1, b_eq_2):
     A_ub = np.concatenate((A_ub_1, A_ub_2), axis=0)
     b_ub = np.concatenate((b_ub_1, b_ub_2), axis=0)
@@ -187,7 +194,7 @@ def _join_constraints(A_ub_1, A_ub_2, A_eq_1, A_eq_2, b_ub_1, b_ub_2, b_eq_1, b_
     return A_ub, A_eq, b_ub, b_eq
 
 
-def build_and_solve(o_to_d, o_to_t, t_to_t, t_to_d, o_prod, t_prod, d_dem, t_dem, n_o, n_d, n_t, L):
+def build_and_solve(o_to_d, o_to_t, t_to_t, t_to_d, o_prod, t_prod, d_dem, t_dem, n_o, n_d, n_t, L, o_to_d_cap, o_to_t_cap, t_to_d_cap, t_to_t_cap):
     c = _build_coefficients(o_to_d, o_to_t, t_to_d, t_to_t)
     A_ub_1, b_ub_1 = _build_constraint_1(n_o, n_d, n_t, o_prod)
     A_ub_2, b_ub_2 = _build_constraint_2(n_o, n_d, n_t, t_prod)
@@ -195,6 +202,7 @@ def build_and_solve(o_to_d, o_to_t, t_to_t, t_to_d, o_prod, t_prod, d_dem, t_dem
     A_eq_2, b_eq_2 = _build_constraint_4(n_o, n_d, n_t, t_dem)
     A_ub, A_eq, b_ub, b_eq = _join_constraints(
         A_ub_1, A_ub_2, A_eq_1, A_eq_2, b_ub_1, b_ub_2, b_eq_1, b_eq_2)
+    bounds = _build_bounds(o_to_d_cap, o_to_t_cap, t_to_d_cap, t_to_t_cap)
     """ When errors arise, check this 
     np.savetxt("c.csv", c, fmt="%i", delimiter=",")
     np.savetxt("A_ub_1.csv", A_ub_1, fmt="%i", delimiter=",")
@@ -206,7 +214,7 @@ def build_and_solve(o_to_d, o_to_t, t_to_t, t_to_d, o_prod, t_prod, d_dem, t_dem
     np.savetxt("b_eq_1.csv", b_eq_1, fmt="%i", delimiter=",")
     np.savetxt("b_eq_2.csv", b_eq_2, fmt="%i", delimiter=",")
     """
-    res = linprog(c, A_ub, b_ub, A_eq, b_eq)
+    res = linprog(c, A_ub, b_ub, A_eq, b_eq, bounds, method="simplex")
     status_options = {0: "Optimization terminated successfully",
                       1: "Iteration limit reached",
                       2: "Problem appears to be infeasible",
@@ -262,16 +270,15 @@ def main(args):
             args.costperkm, args.keyfile, "data_in", "data_in")
     else:
         print("Not a valid get data method")
-    o_to_d, o_to_t, t_to_t, t_to_d, o_prod, t_prod, d_dem, t_dem, n_o, n_d, n_t, L, o_id, d_id, t_id = _parse_input_data(
+    o_to_d, o_to_t, t_to_t, t_to_d, o_prod, t_prod, d_dem, t_dem, n_o, n_d, n_t, L, o_id, d_id, t_id, o_to_d_cap, o_to_t_cap, t_to_d_cap, t_to_t_cap = _parse_input_data(
         "data_in")
     opt_val, opt_o_to_d, opt_o_to_t, opt_t_to_d, opt_t_to_t = build_and_solve(
-        o_to_d, o_to_t, t_to_t, t_to_d, o_prod, t_prod, d_dem, t_dem, n_o, n_d, n_t, L)
+        o_to_d, o_to_t, t_to_t, t_to_d, o_prod, t_prod, d_dem, t_dem, n_o, n_d, n_t, L, o_to_d_cap, o_to_t_cap, t_to_d_cap, t_to_t_cap)
     if opt_val == -1:
         return
     else:
         pass
-    _output_results("data_out", opt_val, opt_o_to_d,
-                    opt_o_to_t, opt_t_to_d, opt_t_to_t)
+    _output_results("data_out", opt_val, opt_o_to_d, opt_o_to_t, opt_t_to_d, opt_t_to_t)
     exportmethod.to_complete_file("data_out", o_id, d_id, t_id)
     return
 
