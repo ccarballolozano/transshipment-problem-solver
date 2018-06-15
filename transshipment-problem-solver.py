@@ -242,15 +242,15 @@ def _output_results(out_data_folder, opt_val, opt_o_to_d, opt_o_to_t, opt_t_to_d
     if not os.path.exists(out_data_folder):
         os.makedirs(out_data_folder)
     np.savetxt(os.path.join(out_data_folder, "opt_value.csv"),
-               np.array(opt_val).reshape((-1)), fmt="%10.4f", delimiter=",")
+               np.array(opt_val).reshape((-1)), fmt="%.1f", delimiter=",")
     np.savetxt(os.path.join(out_data_folder, "opt_origins_to_destinations.csv"),
-               opt_o_to_d, fmt="%10.4f", delimiter=",")
+               opt_o_to_d, fmt="%.1f", delimiter=",")
     np.savetxt(os.path.join(out_data_folder, "opt_origins_to_transshipments.csv"),
-               opt_o_to_t, fmt="%10.4f", delimiter=",")
+               opt_o_to_t, fmt="%.1f", delimiter=",")
     np.savetxt(os.path.join(out_data_folder, "opt_transshipments_to_destinations.csv"),
-               opt_t_to_d, fmt="%10.4f", delimiter=",")
+               opt_t_to_d, fmt="%.1f", delimiter=",")
     np.savetxt(os.path.join(out_data_folder, "opt_transshipments_to_transshipments.csv"),
-               opt_t_to_t, fmt="%10.4f", delimiter=",")
+               opt_t_to_t, fmt="%.1f", delimiter=",")
 
 
 def parse_arguments():
@@ -268,17 +268,23 @@ def main(args):
     elif args.getmethod == "maps":
         getmethod.from_maps_api(args.keyfile, "data_in", "data_in")
     else:
-        print("Not a valid get data method")
+        print("Not a valid get data method", flush=True)
+    print("Getting data...", flush=True)
     o_to_d, o_to_t, t_to_t, t_to_d, o_prod, t_prod, d_dem, t_dem, n_o, n_d, n_t, L, o_id, d_id, t_id, o_to_d_cap, o_to_t_cap, t_to_d_cap, t_to_t_cap = _parse_input_data(
         "data_in")
+    print("Done!", flush=True)
+    print("Building and solving the model...", flush=True)
     opt_val, opt_o_to_d, opt_o_to_t, opt_t_to_d, opt_t_to_t = build_and_solve(
         o_to_d, o_to_t, t_to_t, t_to_d, o_prod, t_prod, d_dem, t_dem, n_o, n_d, n_t, L, o_to_d_cap, o_to_t_cap, t_to_d_cap, t_to_t_cap)
+    print("Done!", flush=True)
     if opt_val == -1:
         return
     else:
         pass
+    print("Exporting resuilts...", flush=True)
     _output_results("data_out", opt_val, opt_o_to_d, opt_o_to_t, opt_t_to_d, opt_t_to_t)
     exportmethod.to_complete_file("data_out", o_id, d_id, t_id)
+    print("Done!", flush=True)
     return
 
 

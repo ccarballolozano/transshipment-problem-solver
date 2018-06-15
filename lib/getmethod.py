@@ -38,7 +38,7 @@ def from_maps_api(api_key_file, from_folder, to_folder):
     # by latitude and longitude, distancematrix is requested by
     # Origins to destinations
     o_to_d = np.zeros(shape=(len(o_name), len(d_name)))  # cost
-    o_to_d_cap = np.fill(shape=(len(o_name), len(d_name)), np.inf)  # capacity
+    o_to_d_cap = np.full((len(o_name), len(d_name)), np.inf)  # capacity
     for i in range(len(o_name)):
         if pd.isna(o_cost[i]):
             cost_per_km = 1
@@ -65,7 +65,7 @@ def from_maps_api(api_key_file, from_folder, to_folder):
             o_to_d[i, j] = cost_per_km * distance / 1000
     # Origins to transshipments
     o_to_t = np.zeros(shape=(len(o_name), len(t_name)))
-    o_to_t_cap = np.fill(shape=(len(o_name), len(t_name)), np.inf)
+    o_to_t_cap = np.full((len(o_name), len(t_name)), np.inf)
     for i in range(len(o_name)):
         if pd.isna(o_cost[i]):
             cost_per_km = 1
@@ -92,7 +92,7 @@ def from_maps_api(api_key_file, from_folder, to_folder):
             o_to_t[i, j] = cost_per_km * distance
     # Transshipments to destinations
     t_to_d = np.zeros(shape=(len(t_name), len(d_name)))
-    t_to_t_cap = np.fill(shape=(len(t_name), len(d_name)), np.inf)    
+    t_to_d_cap = np.full((len(t_name), len(d_name)), np.inf)    
     for i in range(len(t_name)):
         if pd.isna(t_cost[i]):
             cost_per_km = 1
@@ -119,7 +119,7 @@ def from_maps_api(api_key_file, from_folder, to_folder):
             t_to_d[i, j] = cost_per_km * distance
     # Transshipments to transshipments
     t_to_t = np.zeros(shape=(len(t_name), len(t_name)))
-    t_to_t_cap = np.fill(shape=(len(t_name), len(t_name)), np.inf)
+    t_to_t_cap = np.full((len(t_name), len(t_name)), np.inf)
     for i in range(len(t_name)):
         if pd.isna(t_cost[i]):
             cost_per_km = 1
@@ -147,20 +147,20 @@ def from_maps_api(api_key_file, from_folder, to_folder):
                 distance = json_data['rows'][0]['elements'][0]['distance']['value']
             t_to_t[i, j] = cost_per_km * distance
     # Write cost values
-    np.savetxt(os.path.join(to_folder, "cost_origins_to_destinations.csv"), o_to_d, fmt="%.5f", delimiter=",")
-    np.savetxt(os.path.join(to_folder, "cost_origins_to_transshipments.csv"), o_to_t, fmt="%.5f", delimiter=",")
-    np.savetxt(os.path.join(to_folder, "cost_transshipments_to_destinations.csv"), t_to_d, fmt="%.5f", delimiter=",")
-    np.savetxt(os.path.join(to_folder, "cost_transshipments_to_transshipments.csv"), t_to_t, fmt="%.5f", delimiter=",")
+    np.savetxt(os.path.join(to_folder, "cost_origins_to_destinations.csv"), o_to_d, fmt="%f", delimiter=",")
+    np.savetxt(os.path.join(to_folder, "cost_origins_to_transshipments.csv"), o_to_t, fmt="%f", delimiter=",")
+    np.savetxt(os.path.join(to_folder, "cost_transshipments_to_destinations.csv"), t_to_d, fmt="%f", delimiter=",")
+    np.savetxt(os.path.join(to_folder, "cost_transshipments_to_transshipments.csv"), t_to_t, fmt="%f", delimiter=",")
     # Write supplies and demands
-    np.savetxt(os.path.join(to_folder, "production_origins.csv"), o_supply.values, fmt="%.5f", delimiter=",")
-    np.savetxt(os.path.join(to_folder, "production_transshipments.csv"), t_supply.values, fmt="%.5f", delimiter=",")
-    np.savetxt(os.path.join(to_folder, "demand_destinations.csv"), d_demand.values, fmt="%.5f", delimiter=",")
-    np.savetxt(os.path.join(to_folder, "demand_transshipments.csv"), t_demand.values, fmt="%.5f", delimiter=",")
+    np.savetxt(os.path.join(to_folder, "production_origins.csv"), o_supply.values, fmt="%f", delimiter=",")
+    np.savetxt(os.path.join(to_folder, "production_transshipments.csv"), t_supply.values, fmt="%f", delimiter=",")
+    np.savetxt(os.path.join(to_folder, "demand_destinations.csv"), d_demand.values, fmt="%f", delimiter=",")
+    np.savetxt(os.path.join(to_folder, "demand_transshipments.csv"), t_demand.values, fmt="%f", delimiter=",")
     # Write capacities
-    np.savetxt(os.path.join(to_folder, "capacity_origins_to_destinations.csv"), o_to_d, delimiter=",")
-    np.savetxt(os.path.join(to_folder, "capacity_origins_to_transshipments.csv"), o_to_t, delimiter=",")
-    np.savetxt(os.path.join(to_folder, "capacity_transshipments_to_destinations.csv"), t_to_d, delimiter=",")
-    np.savetxt(os.path.join(to_folder, "capacity_transshipments_to_transshipments.csv"), t_to_t, delimiter=",")
+    np.savetxt(os.path.join(to_folder, "capacity_origins_to_destinations.csv"), o_to_d_cap, fmt="%f", delimiter=",")
+    np.savetxt(os.path.join(to_folder, "capacity_origins_to_transshipments.csv"), o_to_t_cap, fmt="%f", delimiter=",")
+    np.savetxt(os.path.join(to_folder, "capacity_transshipments_to_destinations.csv"), t_to_d_cap, fmt="%f", delimiter=",")
+    np.savetxt(os.path.join(to_folder, "capacity_transshipments_to_transshipments.csv"), t_to_t_cap, fmt="%f", delimiter=",")
     # Write names
     o_id = []
     d_id = []
