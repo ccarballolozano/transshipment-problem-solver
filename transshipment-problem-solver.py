@@ -239,6 +239,8 @@ def build_and_solve(o_to_d, o_to_t, t_to_t, t_to_d, o_prod, t_prod, d_dem, t_dem
 
 
 def _output_results(out_data_folder, opt_val, opt_o_to_d, opt_o_to_t, opt_t_to_d, opt_t_to_t):
+    if not os.path.exists(out_data_folder):
+        os.makedirs(out_data_folder)
     np.savetxt(os.path.join(out_data_folder, "opt_value.csv"),
                np.array(opt_val).reshape((-1)), fmt="%10.4f", delimiter=",")
     np.savetxt(os.path.join(out_data_folder, "opt_origins_to_destinations.csv"),
