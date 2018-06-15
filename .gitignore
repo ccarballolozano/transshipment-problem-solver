@@ -1,6 +1,7 @@
 transshipment-problem-solver.sublime-project
 transshipment-problem-solver.sublime-workspace
-venv/
-**__pycache__
+venv
+*.pyc
+__pycache__
 data_in/
 data_out/
