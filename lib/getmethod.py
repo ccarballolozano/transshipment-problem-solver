@@ -37,7 +37,8 @@ def from_maps_api(api_key_file, from_folder, to_folder):
     # url = "http://maps.googleapis.com/maps/api/distancematrix/json?origins=Seattle&destinations=San+Francisco&mode=driving&sensor=false"
     # by latitude and longitude, distancematrix is requested by
     # Origins to destinations
-    o_to_d = np.zeros(shape=(len(o_name), len(d_name)))
+    o_to_d = np.zeros(shape=(len(o_name), len(d_name)))  # cost
+    o_to_d_cap = np.fill(shape=(len(o_name), len(d_name)), np.inf)  # capacity
     for i in range(len(o_name)):
         if pd.isna(o_cost[i]):
             cost_per_km = 1
@@ -54,14 +55,17 @@ def from_maps_api(api_key_file, from_folder, to_folder):
                 url_destination = str(d_name[j]).replace(' ', '+')
             url = 'https://maps.googleapis.com/maps/api/distancematrix/json?origins=%s&destinations=%s&mode=driving&sensor=false&key=%s' % (
                 url_origin, url_destination, api_key)
-            # print(url)
             r = urllib.request.urlopen(url).read().decode('utf8')
-            # print(r)
             json_data = json.loads(r)
-            distance = json_data['rows'][0]['elements'][0]['distance']['value']
+            if json_data['rows'][0]['elements'][0]['status'] == "ZERO_RESULTS":
+                distance = 0
+                o_to_d_cap[i, j] = 0
+            else:
+                distance = json_data['rows'][0]['elements'][0]['distance']['value']
             o_to_d[i, j] = cost_per_km * distance / 1000
     # Origins to transshipments
     o_to_t = np.zeros(shape=(len(o_name), len(t_name)))
+    o_to_t_cap = np.fill(shape=(len(o_name), len(t_name)), np.inf)
     for i in range(len(o_name)):
         if pd.isna(o_cost[i]):
             cost_per_km = 1
@@ -78,14 +82,17 @@ def from_maps_api(api_key_file, from_folder, to_folder):
                 url_destination = str(t_name[j]).replace(' ', '+')
             url = 'https://maps.googleapis.com/maps/api/distancematrix/json?origins=%s&destinations=%s&mode=driving&sensor=false&key=%s' % (
                 url_origin, url_destination, api_key)
-            # print(url)
             r = urllib.request.urlopen(url).read().decode('utf8')
-            # print(r)
             json_data = json.loads(r)
-            distance = json_data['rows'][0]['elements'][0]['distance']['value']
+            if json_data['rows'][0]['elements'][0]['status'] == "ZERO_RESULTS":
+                distance = 0
+                o_to_t_cap[i, j] = 0
+            else:
+                distance = json_data['rows'][0]['elements'][0]['distance']['value']
             o_to_t[i, j] = cost_per_km * distance
     # Transshipments to destinations
     t_to_d = np.zeros(shape=(len(t_name), len(d_name)))
+    t_to_t_cap = np.fill(shape=(len(t_name), len(d_name)), np.inf)    
     for i in range(len(t_name)):
         if pd.isna(t_cost[i]):
             cost_per_km = 1
@@ -102,13 +109,17 @@ def from_maps_api(api_key_file, from_folder, to_folder):
                 url_destination = str(d_name[j]).replace(' ', '+')
             url = 'https://maps.googleapis.com/maps/api/distancematrix/json?origins=%s&destinations=%s&mode=driving&sensor=false&key=%s' % (
                 url_origin, url_destination, api_key)
-            # print(url)
             r = urllib.request.urlopen(url).read().decode('utf8')
             json_data = json.loads(r)
-            distance = json_data['rows'][0]['elements'][0]['distance']['value']
+            if json_data['rows'][0]['elements'][0]['status'] == "ZERO_RESULTS":
+                distance = 0
+                t_to_d_cap[i, j] = 0
+            else:
+                distance = json_data['rows'][0]['elements'][0]['distance']['value']
             t_to_d[i, j] = cost_per_km * distance
     # Transshipments to transshipments
     t_to_t = np.zeros(shape=(len(t_name), len(t_name)))
+    t_to_t_cap = np.fill(shape=(len(t_name), len(t_name)), np.inf)
     for i in range(len(t_name)):
         if pd.isna(t_cost[i]):
             cost_per_km = 1
@@ -127,12 +138,15 @@ def from_maps_api(api_key_file, from_folder, to_folder):
                 url_destination = str(t_name[j]).replace(' ', '+')
             url = 'https://maps.googleapis.com/maps/api/distancematrix/json?origins=%s&destinations=%s&mode=driving&sensor=false&key=%s' % (
                 url_origin, url_destination, api_key)
-            # print(url)
             r = urllib.request.urlopen(url).read().decode('utf8')
             json_data = json.loads(r)
-            distance = json_data['rows'][0]['elements'][0]['distance']['value']
+            if json_data['rows'][0]['elements'][0]['status'] == "ZERO_RESULTS":
+                distance = 0
+                t_to_t_cap[i, j] = 0
+            else:
+                distance = json_data['rows'][0]['elements'][0]['distance']['value']
             t_to_t[i, j] = cost_per_km * distance
-    # Write cost functions
+    # Write cost values
     np.savetxt(os.path.join(to_folder, "cost_origins_to_destinations.csv"), o_to_d, fmt="%.5f", delimiter=",")
     np.savetxt(os.path.join(to_folder, "cost_origins_to_transshipments.csv"), o_to_t, fmt="%.5f", delimiter=",")
     np.savetxt(os.path.join(to_folder, "cost_transshipments_to_destinations.csv"), t_to_d, fmt="%.5f", delimiter=",")
@@ -142,6 +156,11 @@ def from_maps_api(api_key_file, from_folder, to_folder):
     np.savetxt(os.path.join(to_folder, "production_transshipments.csv"), t_supply.values, fmt="%.5f", delimiter=",")
     np.savetxt(os.path.join(to_folder, "demand_destinations.csv"), d_demand.values, fmt="%.5f", delimiter=",")
     np.savetxt(os.path.join(to_folder, "demand_transshipments.csv"), t_demand.values, fmt="%.5f", delimiter=",")
+    # Write capacities
+    np.savetxt(os.path.join(to_folder, "capacity_origins_to_destinations.csv"), o_to_d, delimiter=",")
+    np.savetxt(os.path.join(to_folder, "capacity_origins_to_transshipments.csv"), o_to_t, delimiter=",")
+    np.savetxt(os.path.join(to_folder, "capacity_transshipments_to_destinations.csv"), t_to_d, delimiter=",")
+    np.savetxt(os.path.join(to_folder, "capacity_transshipments_to_transshipments.csv"), t_to_t, delimiter=",")
     # Write names
     o_id = []
     d_id = []
