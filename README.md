@@ -40,7 +40,7 @@ python transshipment-problem-solver.py
 
 To run the algorithm in the maps mode, call
 ``` bash
-python transshipment-problem-solver -g "maps"
+python transshipment-problem-solver.py -g "maps"
 ```
 
 The algorithm outputs the results
