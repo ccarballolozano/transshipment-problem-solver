@@ -43,7 +43,7 @@ To run the algorithm in the maps mode, call
 python transshipment-problem-solver -g "maps"
 ```
 
-The alworithm outputs the results
+The algorithm outputs the results
 
 * data_out/
   * opt_all.csv
