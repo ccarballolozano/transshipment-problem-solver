@@ -1,0 +1,8 @@
+name,latitude,longitude,supply,demand,costperkm
+Zaragoza Spain,,,1275,900,1
+Oporto Portugal,,,1000,800,1
+Toulouse France,,,1300,1000,1.5
+Lyon France,,,750,950,1.5
+Turin Italy,,,500,800,1
+Francfort Germany,,,1100,825,2
+Zurich Suiza,,,500,600,2.5
