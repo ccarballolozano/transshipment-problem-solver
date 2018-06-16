@@ -263,13 +263,14 @@ def parse_arguments():
 
 
 def main(args):
+    print("Getting data...", flush=True)
     if args.getmethod == "default":
         pass
     elif args.getmethod == "maps":
         getmethod.from_maps_api(args.keyfile, "data_in", "data_in")
     else:
         print("Not a valid get data method", flush=True)
-    print("Getting data...", flush=True)
+        return
     o_to_d, o_to_t, t_to_t, t_to_d, o_prod, t_prod, d_dem, t_dem, n_o, n_d, n_t, L, o_id, d_id, t_id, o_to_d_cap, o_to_t_cap, t_to_d_cap, t_to_t_cap = _parse_input_data(
         "data_in")
     print("Done!", flush=True)
