@@ -89,7 +89,7 @@ def from_maps_api(api_key_file, from_folder, to_folder):
                 o_to_t_cap[i, j] = 0
             else:
                 distance = json_data['rows'][0]['elements'][0]['distance']['value']
-            o_to_t[i, j] = cost_per_km * distance
+            o_to_t[i, j] = cost_per_km * distance / 1000
     # Transshipments to destinations
     t_to_d = np.zeros(shape=(len(t_name), len(d_name)))
     t_to_d_cap = np.full((len(t_name), len(d_name)), np.inf)    
@@ -116,7 +116,7 @@ def from_maps_api(api_key_file, from_folder, to_folder):
                 t_to_d_cap[i, j] = 0
             else:
                 distance = json_data['rows'][0]['elements'][0]['distance']['value']
-            t_to_d[i, j] = cost_per_km * distance
+            t_to_d[i, j] = cost_per_km * distance / 1000
     # Transshipments to transshipments
     t_to_t = np.zeros(shape=(len(t_name), len(t_name)))
     t_to_t_cap = np.full((len(t_name), len(t_name)), np.inf)
@@ -145,7 +145,7 @@ def from_maps_api(api_key_file, from_folder, to_folder):
                 t_to_t_cap[i, j] = 0
             else:
                 distance = json_data['rows'][0]['elements'][0]['distance']['value']
-            t_to_t[i, j] = cost_per_km * distance
+            t_to_t[i, j] = cost_per_km * distance / 1000
     # Write cost values
     np.savetxt(os.path.join(to_folder, "cost_origins_to_destinations.csv"), o_to_d, fmt="%f", delimiter=",")
     np.savetxt(os.path.join(to_folder, "cost_origins_to_transshipments.csv"), o_to_t, fmt="%f", delimiter=",")
