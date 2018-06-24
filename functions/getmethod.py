@@ -6,25 +6,19 @@ import json
 import csv
 
 
-def from_maps_api(api_key_file, from_folder, to_folder):
-    # read distancematrix api key
-    with open(api_key_file, 'r') as f:
-        api_key = f.readline()
-    o_df = pd.read_csv(os.path.join(
-        from_folder, "origins.csv"))
+def from_maps_api(api_key, origins_file, destinations_file, transshipments_file, to_folder):
+    o_df = pd.read_csv(origins_file)
     o_name = o_df['name']
     o_lat = o_df['latitude']
     o_long = o_df['longitude']
     o_supply = o_df['supply']
     o_cost = o_df['costperkm']
-    d_df = pd.read_csv(os.path.join(
-        from_folder, "destinations.csv"))
+    d_df = pd.read_csv(destinations_file)
     d_name = d_df['name']
     d_lat = d_df['latitude']
     d_long = d_df['longitude']
     d_demand = d_df['demand']
-    t_df = pd.read_csv(os.path.join(
-        from_folder, "transshipments.csv"))
+    t_df = pd.read_csv(transshipments_file)
     t_name = t_df['name']
     t_lat = t_df['latitude']
     t_long = t_df['longitude']
@@ -146,6 +140,10 @@ def from_maps_api(api_key_file, from_folder, to_folder):
             else:
                 distance = json_data['rows'][0]['elements'][0]['distance']['value']
             t_to_t[i, j] = cost_per_km * distance / 1000
+    # Remove existing files
+    for f in os.listdir(to_folder):
+        if f.endswith(".csv"):
+            os.remove(f)
     # Write cost values
     np.savetxt(os.path.join(to_folder, "cost_origins_to_destinations.csv"), o_to_d, fmt="%f", delimiter=",")
     np.savetxt(os.path.join(to_folder, "cost_origins_to_transshipments.csv"), o_to_t, fmt="%f", delimiter=",")

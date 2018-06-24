@@ -2,7 +2,7 @@ from scipy.optimize import linprog
 import numpy as np
 import pandas as pd
 import os
-from lib import getmethod, exportmethod
+from functions import getmethod, exportmethod
 import argparse
 
 
