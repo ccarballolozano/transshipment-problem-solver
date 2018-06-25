@@ -8,7 +8,8 @@ import pandas as pd
 import shutil
 
 
-root_dir = os.path.dirname(os.path.abspath(__file__))
+# root_dir = os.path.dirname(os.path.abspath(__file__))
+root_dir = os.getcwd()
 data_in_dir_rel = "data_in"
 data_out_dir_rel = "data_out"
 data_in_dir = os.path.join(root_dir, data_in_dir_rel)
