@@ -151,25 +151,38 @@ def build_and_solve(o_to_d, o_to_t, t_to_t, t_to_d, o_prod, t_prod, d_dem, t_dem
         return -1, -1, -1, -1, -1, msg
 
 
-def save_result(opt_val, opt_o_to_d, opt_o_to_t, opt_t_to_d, opt_t_to_t, o_id, d_id, t_id, to_folder):
+def save_result(opt_val, opt_o_to_d, opt_o_to_t, opt_t_to_d, opt_t_to_t, to_folder, o_id=False, d_id=False, t_id=False):
+    if o_id is not False:
+        o_id = o_id.values[0]
+    else:
+        o_id = ["O" + str(i+1) for i in range(opt_o_to_d.shape[0])]
+    if d_id is not False:
+        d_id = d_id.values[0]
+    else:
+        d_id = ["D" + str(i+1) for i in range(opt_o_to_d.shape[1])]
+    if t_id is not False:
+        t_id = t_id.values[0]
+    else:
+        t_id = ["T" + str(i+1) for i in range(opt_o_to_t.shape[1])]
+
     if not os.path.exists(to_folder):
         os.makedirs(to_folder)
     else:
         for f in os.listdir(to_folder):
             if f.endswith(".csv") or f.endswith(".xlsx"):
-                os.remove(f)
+                os.remove(os.path.join(to_folder, f))
     np.savetxt(os.path.join(to_folder, "opt_value.csv"),
-               np.array(opt_val).reshape((-1)), fmt="%.1f", delimiter=",")
+               np.array(opt_val).reshape((-1)), fmt="%f", delimiter=",")
     np.savetxt(os.path.join(to_folder, "opt_origins_to_destinations.csv"),
-               opt_o_to_d, fmt="%.1f", delimiter=",")
+               opt_o_to_d, fmt="%f", delimiter=",")
     np.savetxt(os.path.join(to_folder, "opt_origins_to_transshipments.csv"),
-               opt_o_to_t, fmt="%.1f", delimiter=",")
+               opt_o_to_t, fmt="%f", delimiter=",")
     np.savetxt(os.path.join(to_folder, "opt_transshipments_to_destinations.csv"),
-               opt_t_to_d, fmt="%.1f", delimiter=",")
+               opt_t_to_d, fmt="%f", delimiter=",")
     np.savetxt(os.path.join(to_folder, "opt_transshipments_to_transshipments.csv"),
-               opt_t_to_t, fmt="%.1f", delimiter=",")
-    rows = o_id + t_id
-    cols = d_id + t_id
+               opt_t_to_t, fmt="%f", delimiter=",")
+    rows = np.concatenate((o_id, t_id))
+    cols = np.concatenate((d_id, t_id))
     df = pd.DataFrame(index=rows, columns=cols)
     data = np.loadtxt(os.path.join(to_folder, "opt_origins_to_destinations.csv"),
                       delimiter=",")
@@ -195,9 +208,11 @@ def save_result(opt_val, opt_o_to_d, opt_o_to_t, opt_t_to_d, opt_t_to_t, o_id, d
         for j in range(data.shape[1]):
             df.loc[t_id[i], t_id[j]] = data[i, j]
     # Write to excel
+
     writer = pd.ExcelWriter(os.path.join(to_folder, 'opt_all.xlsx'))
     df.to_excel(writer)
     writer.save()
     # Write to csv
     df.to_csv(os.path.join(to_folder, 'opt_all.csv'), sep=",")
+
     return

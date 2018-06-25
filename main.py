@@ -5,6 +5,7 @@ import os
 from functions import getmethod, solve
 import webbrowser
 import pandas as pd
+import shutil
 
 
 root_dir = os.path.dirname(os.path.abspath(__file__))
@@ -20,11 +21,25 @@ window.title("Transshipment solver")
 #window.geometry('350x200')
 
 ##############
-stp_1_lbl = Label(window, text="Step 1: Select Data (skip if manually added data)")
-stp_1_lbl.grid(column=0, row=0)
+
+"""
+HEADER.
+"""
+row_0 = 0
+col_0 = 0
+header_lbl = Label(window, text="Solve your supply chain")
+header_lbl.grid(row=row_0, column=col_0, columnspan=2)
+header_email_label = Label(window, text="ccarballolozano@gmail.com")
+header_email_label.grid(row=row_0, column=2 + col_0)
+
+"""
+INPUT FROM MAPS DISTANCEMATRIX API.
+"""
 row_0 = 1
 col_0 = 0
 
+stp_1_lbl = Label(window, text="Step 1: Select Data (skip if manually added data)")
+stp_1_lbl.grid(column=0, row=0 + row_0)
 o_lbl = Label(window, text="Origins")
 o_lbl.grid(column=0 + col_0, row=0 + row_0)
 o_file = None
@@ -145,10 +160,64 @@ def run_btn_clicked():
     o_id = pd.read_csv(os.path.join(data_in_dir, "id_origins.csv"), header=None)
     t_id = pd.read_csv(os.path.join(data_in_dir, "id_transshipments.csv"), header=None)
     d_id = pd.read_csv(os.path.join(data_in_dir, "id_destinations.csv"), header=None)
-    solve.save_result(opt_val, opt_o_to_d, opt_o_to_t, opt_t_to_d, opt_t_to_t, o_id, d_id, t_id, data_out_dir)
+    solve.save_result(opt_val, opt_o_to_d, opt_o_to_t, opt_t_to_d, opt_t_to_t, data_out_dir, o_id, d_id, t_id)
 
 
 run_btn = Button(window, text="Solve", command=run_btn_clicked)
 run_btn.grid(column=col_0, row=3 + row_0, columnspan=2)
+
+
+"""
+Step 4: Export result
+"""
+row_0 = 14
+col_0 = 0
+
+export_dir_lbl = Label(window, text="Folder: ")
+export_dir_lbl.grid(row=0 + row_0, column=0 + col_0)
+export_dir_entry = Entry(window, width=15)
+export_dir_entry.grid(row=0 + row_0, column=1 + col_0)
+
+
+def export_dir_btn_clicked():
+    ask = filedialog.askdirectory()
+    export_dir_entry.delete(0, END)
+    export_dir_entry.insert(0, ask)
+
+
+export_dir_btn = Button(window, text="Select folder", command=export_dir_btn_clicked)
+export_dir_btn.grid(row=0 + row_0, column=2 + col_0)
+
+
+export_name_lbl = Label(window, text="Name: ")
+export_name_lbl.grid(row=1 + row_0, column=0 + col_0)
+export_name_entry = Entry(window, width=15)
+export_name_entry.grid(row=1 + row_0, column=1 + col_0)
+
+
+def export_xlsx_btn_clicked():
+    global data_out_dir
+    export_dir = export_dir_entry.get()
+    export_name = export_name_entry.get()
+    from_file = os.path.join(data_out_dir, 'opt_all.xlsx')
+    to_file = os.path.join(export_dir, export_name) + '.xlsx'
+    shutil.copy(from_file, to_file)
+
+export_xlsx_btn = Button(window, text="to .xlsx", command=export_xlsx_btn_clicked)
+export_xlsx_btn.grid(row=2 + row_0, column=0 + col_0)
+
+
+def export_csv_btn_clicked():
+    global data_out_dir
+    export_dir = export_dir_entry.get()
+    export_name = export_name_entry.get()
+    from_file = os.path.join(data_out_dir, 'opt_all.csv')
+    to_file = os.path.join(export_dir, export_name) + '.csv'
+    shutil.copy(from_file, to_file)
+
+
+export_csv_btn = Button(window, text="to .csv", command=export_csv_btn_clicked)
+export_csv_btn.grid(row=2 + row_0, column=1 + col_0)
+
 
 window.mainloop()
