@@ -131,7 +131,8 @@ def build_and_solve(o_to_d, o_to_t, t_to_t, t_to_d, o_prod, t_prod, d_dem, t_dem
                       2: "Problem appears to be infeasible",
                       3: "Problem appears to be unbounded"}
     if res.success:
-        print("Optimization terminated successfully")
+        msg = "Optimization terminated successfully"
+        print(msg)
         opt_val = res.fun
         print("Optimal value is %f" % (opt_val))
         res_x = np.array(res.x)
@@ -143,10 +144,11 @@ def build_and_solve(o_to_d, o_to_t, t_to_t, t_to_d, o_prod, t_prod, d_dem, t_dem
         # Substract L to the variables affected by the variable change
         for i in range(opt_t_to_t.shape[0]):
             opt_t_to_t[i, i] = L - opt_t_to_t[i, i]
-        return opt_val, opt_o_to_d, opt_o_to_t, opt_t_to_d, opt_t_to_t
+        return opt_val, opt_o_to_d, opt_o_to_t, opt_t_to_d, opt_t_to_t, msg
     else:
-        print(status_options[res.status])
-        return -1, -1, -1, -1, -1
+        msg = status_options[res.status]
+        print(msg)
+        return -1, -1, -1, -1, -1, msg
 
 
 def save_result(opt_val, opt_o_to_d, opt_o_to_t, opt_t_to_d, opt_t_to_t, o_id, d_id, t_id, to_folder):
