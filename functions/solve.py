@@ -214,5 +214,4 @@ def save_result(opt_val, opt_o_to_d, opt_o_to_t, opt_t_to_d, opt_t_to_t, to_fold
     writer.save()
     # Write to csv
     df.to_csv(os.path.join(to_folder, 'opt_all.csv'), sep=",")
-
     return
