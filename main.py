@@ -35,94 +35,86 @@ header_email_label.grid(row=row_0, column=2 + col_0)
 """
 INPUT FROM MAPS DISTANCEMATRIX API.
 """
-row_0 = 1
+row_0 = 2
 col_0 = 0
 
-stp_1_lbl = Label(window, text="Step 1: Select Data (skip if manually added data)")
-stp_1_lbl.grid(column=0, row=0 + row_0)
-o_lbl = Label(window, text="Origins")
-o_lbl.grid(column=0 + col_0, row=0 + row_0)
-o_file = None
+stp_1_lbl = Label(window, text="Build Data from Maps API (skip if manually)", font=("Arial Bold", 15))
+stp_1_lbl.grid(column=0, row=0 + row_0, columnspan=3)
+
+o_lbl = Label(window, text="Origins: ")
+o_lbl.grid(column=0 + col_0, row=1 + row_0)
+o_entry = Entry(window, width=30)
+o_entry.grid(column=1 + col_0, row=1 + row_0)
 
 
 def o_btn_clicked():
-    global o_file
-    o_file_2 = filedialog.askopenfilename()
-    if o_file_2 is not () or o_file_2 != "":
-        o_file = o_file_2
-        o_lbl.configure(text="Done !")
+    ask = filedialog.askopenfilename()
+    if ask is not () or ask != "":
+        o_entry.delete(0, END)
+        o_entry.insert(0, ask)
 
 
 o_btn = Button(window, text="Select csv", command=o_btn_clicked)
-o_btn.grid(column=1 + col_0, row=0 + row_0)
+o_btn.grid(column=2 + col_0, row=1 + row_0)
 
-t_lbl = Label(window, text="Transshipments")
-t_lbl.grid(column=0 + col_0, row=1 + row_0)
-t_file = None
+t_lbl = Label(window, text="Transshipments: ")
+t_lbl.grid(column=0 + col_0, row=2 + row_0)
+t_entry = Entry(window, width=30)
+t_entry.grid(column=1 + col_0, row=2 + row_0)
 
 
 def t_btn_clicked():
-    global t_file
-    t_file_2 = filedialog.askopenfilename()
-    if t_file_2 is not () or t_file_2 != "":
-        t_file = t_file_2
-        t_lbl.configure(text="Done !")
+    ask = filedialog.askopenfilename()
+    if ask is not () or ask != "":
+        t_entry.delete(0, END)
+        t_entry.insert(0, ask)
 
 
 t_btn = Button(window, text="Select csv", command=t_btn_clicked)
-t_btn.grid(column=1 + col_0, row=1 + row_0)
+t_btn.grid(column=2 + col_0, row=2 + row_0)
 
 d_lbl = Label(window, text="Destinations")
-d_lbl.grid(column=0 + col_0, row=2 + row_0)
-d_file = None
+d_lbl.grid(column=0 + col_0, row=3 + row_0)
+d_entry = Entry(window, width=30)
+d_entry.grid(column=1 + col_0, row=3 + row_0)
 
 
 def d_btn_clicked():
-    global d_file
-    d_file_2 = filedialog.askopenfilename()
-    if d_file_2 is not () or d_file_2 != "":
-        d_file = d_file_2
-        d_lbl.configure(text="Done !")
+    ask = filedialog.askopenfilename()
+    if ask is not () or ask != "":
+        d_entry.delete(0, END)
+        d_entry.insert(0, ask)
 
 
 d_btn = Button(window, text="Select csv", command=d_btn_clicked)
-d_btn.grid(column=1 + col_0, row=2 + row_0)
+d_btn.grid(column=2 + col_0, row=3 + row_0)
 
-
-def key_btn_clicked():
-    global api_key
-    api_key_2 = simpledialog.askstring(title="DistanceMatrix API key", prompt="Write key")
-    if api_key_2 is not () or api_key_2 != "" or api_key_2 is None:
-        api_key = api_key_2
-        key_lbl.configure(text="Done !")
-
-
-key_lbl = Label(window, text="DistanceMatrix API Key")
-key_lbl.grid(column=0 + col_0, row=3 + row_0)
-key_btn = Button(window, text="Put key", command=key_btn_clicked)
-key_btn.grid(column=1 + col_0, row=3 + row_0)
+key_lbl = Label(window, text="DistanceMatrix API Key: ")
+key_lbl.grid(column=0 + col_0, row=4 + row_0)
+key_entry = Entry(window, width=30)
+key_entry.grid(column=1 + col_0, row=4 + row_0)
 
 
 def go_btn_clicked():
-    global root_dir
-    getmethod.from_maps_api(api_key, o_file, d_file, t_file, data_in_dir)
-    key_btn.config(text="Done !")
+    global data_in_dir
+    getmethod.from_maps_api(key_entry.get(), o_entry.get(), d_entry.get(), t_entry.get(), data_in_dir)
 
 
-go_btn = Button(window, text="Click when files selected", command=go_btn_clicked)
-go_btn.grid(row=4 + row_0)
+go_btn = Button(window, text="Build Data", command=go_btn_clicked)
+go_btn.grid(row=5 + row_0, column=0 + col_0, columnspan=3)
+
 
 """
-Step 2
+EDIT INPUTS
 """
-row_0 = 6
+row_0 = 8
 col_0 = 0
-stp_2_lbl = Label(window, text="Step 2: Add data manually or edit the imported")
-stp_2_lbl.grid(row=row_0, column=col_0, columnspan=2)
+stp_2_lbl = Label(window, text="Add data manually or edit the built one", font=("Arial Bold", 15))
+stp_2_lbl.grid(row=row_0, column=col_0, columnspan=3)
 stp_2_lbl_1 = Label(window, text="(i) Coming from Step 1, modify created files")
-stp_2_lbl_1.grid(row=row_0 + 1, column=col_0, columnspan=2)
+stp_2_lbl_1.grid(row=row_0 + 1, column=col_0, columnspan=3)
 stp_2_lbl_2 = Label(window, text="(ii) If not, manually paste necessary data, see documentation")
-stp_2_lbl_2.grid(row=row_0 + 2, column=col_0, columnspan=2)
+stp_2_lbl_2.grid(row=row_0 + 2, column=col_0, columnspan=3)
 
 
 def edit_btn_clicked():
@@ -131,13 +123,15 @@ def edit_btn_clicked():
 
 
 edit_btn = Button(window, text="Edit Data", command=edit_btn_clicked)
-edit_btn.grid(column=col_0, row=3 + row_0, columnspan=2)
+edit_btn.grid(column=col_0, row=3 + row_0, columnspan=3)
 
 """
 Step 3: Solve
 """
-row_0 = 10
+row_0 = 12
 col_0 = 0
+stp_3_lbl = Label(window, text="Get the optimal solution", font=("Arial Bold", 15))
+stp_3_lbl.grid(row=0 + row_0, column=0 + col_0, columnspan=3)
 
 
 def run_btn_clicked():
@@ -163,8 +157,8 @@ def run_btn_clicked():
     solve.save_result(opt_val, opt_o_to_d, opt_o_to_t, opt_t_to_d, opt_t_to_t, data_out_dir, o_id, d_id, t_id)
 
 
-run_btn = Button(window, text="Solve", command=run_btn_clicked)
-run_btn.grid(column=col_0, row=3 + row_0, columnspan=2)
+run_btn = Button(window, text="Optimize", command=run_btn_clicked)
+run_btn.grid(column=0 + col_0, row=1 + row_0, columnspan=3)
 
 
 """
@@ -172,11 +166,13 @@ Step 4: Export result
 """
 row_0 = 14
 col_0 = 0
+stp_3_lbl = Label(window, text="Export Solution", font=("Arial Bold", 15))
+stp_3_lbl.grid(row=0 + row_0, column=0 + col_0, columnspan=3)
 
 export_dir_lbl = Label(window, text="Folder: ")
-export_dir_lbl.grid(row=0 + row_0, column=0 + col_0)
+export_dir_lbl.grid(row=1 + row_0, column=0 + col_0)
 export_dir_entry = Entry(window, width=15)
-export_dir_entry.grid(row=0 + row_0, column=1 + col_0)
+export_dir_entry.grid(row=1 + row_0, column=1 + col_0)
 
 
 def export_dir_btn_clicked():
@@ -186,13 +182,13 @@ def export_dir_btn_clicked():
 
 
 export_dir_btn = Button(window, text="Select folder", command=export_dir_btn_clicked)
-export_dir_btn.grid(row=0 + row_0, column=2 + col_0)
+export_dir_btn.grid(row=1 + row_0, column=2 + col_0)
 
 
 export_name_lbl = Label(window, text="Name: ")
-export_name_lbl.grid(row=1 + row_0, column=0 + col_0)
+export_name_lbl.grid(row=2 + row_0, column=0 + col_0)
 export_name_entry = Entry(window, width=15)
-export_name_entry.grid(row=1 + row_0, column=1 + col_0)
+export_name_entry.grid(row=2 + row_0, column=1 + col_0)
 
 
 def export_xlsx_btn_clicked():
@@ -203,8 +199,9 @@ def export_xlsx_btn_clicked():
     to_file = os.path.join(export_dir, export_name) + '.xlsx'
     shutil.copy(from_file, to_file)
 
+
 export_xlsx_btn = Button(window, text="to .xlsx", command=export_xlsx_btn_clicked)
-export_xlsx_btn.grid(row=2 + row_0, column=0 + col_0)
+export_xlsx_btn.grid(row=3 + row_0, column=0 + col_0, columnspan=2)
 
 
 def export_csv_btn_clicked():
@@ -217,7 +214,7 @@ def export_csv_btn_clicked():
 
 
 export_csv_btn = Button(window, text="to .csv", command=export_csv_btn_clicked)
-export_csv_btn.grid(row=2 + row_0, column=1 + col_0)
+export_csv_btn.grid(row=3 + row_0, column=1 + col_0, columnspan=2)
 
 
 window.mainloop()
