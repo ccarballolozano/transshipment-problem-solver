@@ -18,7 +18,7 @@ def main():
 
     window = Tk()
 
-    window.title("Transshipment solver")
+    window.title("Supply Chain Optimization")
 
     #window.geometry('350x200')
 
@@ -29,10 +29,8 @@ def main():
     """
     row_0 = 0
     col_0 = 0
-    header_lbl = Label(window, text="Solve your supply chain")
-    header_lbl.grid(row=row_0, column=col_0, columnspan=2)
-    header_email_label = Label(window, text="ccarballolozano@gmail.com")
-    header_email_label.grid(row=row_0, column=2 + col_0)
+    header_lbl = Label(window, text="Optimize your supply chain problem following the steps.")
+    header_lbl.grid(row=row_0, column=col_0, columnspan=3)
 
     """
     INPUT FROM MAPS DISTANCEMATRIX API.
@@ -40,7 +38,7 @@ def main():
     row_0 = 2
     col_0 = 0
 
-    stp_1_lbl = Label(window, text="Build Data from Maps API (skip if manually)", font=("Arial Bold", 15))
+    stp_1_lbl = Label(window, text="Build data from Maps API (skip if manually)", font=("Arial Bold", 15))
     stp_1_lbl.grid(column=0, row=0 + row_0, columnspan=3)
 
     o_lbl = Label(window, text="Origins: ")
@@ -90,9 +88,14 @@ def main():
     key_entry = Entry(window, width=30)
     key_entry.grid(column=1 + col_0, row=4 + row_0)
 
+    build_status_lbl = Label(window, text="")
+    build_status_lbl.grid(row=6 + row_0, column=0 + col_0, columnspan=3)
+
     def go_btn_clicked():
         global data_in_dir
+        build_status_lbl.configure(text="Building ...")
         getmethod.from_maps_api(key_entry.get(), o_entry.get(), d_entry.get(), t_entry.get(), data_in_dir)
+        build_status_lbl.configure(text="Built !")
 
     go_btn = Button(window, text="Build Data", command=go_btn_clicked)
     go_btn.grid(row=5 + row_0, column=0 + col_0, columnspan=3)
@@ -100,13 +103,13 @@ def main():
     """
     EDIT INPUTS
     """
-    row_0 = 8
+    row_0 = 9
     col_0 = 0
     stp_2_lbl = Label(window, text="Add data manually or edit the built one", font=("Arial Bold", 15))
     stp_2_lbl.grid(row=row_0, column=col_0, columnspan=3)
-    stp_2_lbl_1 = Label(window, text="(i) Coming from Step 1, modify created files")
+    stp_2_lbl_1 = Label(window, text="(i) Coming from previous step, modify created files")
     stp_2_lbl_1.grid(row=row_0 + 1, column=col_0, columnspan=3)
-    stp_2_lbl_2 = Label(window, text="(ii) If not, manually paste necessary data, see documentation")
+    stp_2_lbl_2 = Label(window, text="(ii) If not, manually add all necessary data, see documentation")
     stp_2_lbl_2.grid(row=row_0 + 2, column=col_0, columnspan=3)
 
     def edit_btn_clicked():
@@ -119,14 +122,18 @@ def main():
     """
     Step 3: Solve
     """
-    row_0 = 12
+    row_0 = 13
     col_0 = 0
     stp_3_lbl = Label(window, text="Get the optimal solution", font=("Arial Bold", 15))
     stp_3_lbl.grid(row=0 + row_0, column=0 + col_0, columnspan=3)
 
+    solve_status_lbl = Label(window, text="")
+    solve_status_lbl.grid(row=2 + row_0, column=0 + col_0, columnspan=3)
+
     def run_btn_clicked():
         global data_in_dir
         global data_out_dir
+        solve_status_lbl.configure(text="Solving ...")
         o_to_d = pd.read_csv(os.path.join(data_in_dir, "cost_origins_to_destinations.csv"), index_col=0).values
         o_to_t = pd.read_csv(os.path.join(data_in_dir, "cost_origins_to_transshipments.csv"), index_col=0).values
         t_to_d = pd.read_csv(os.path.join(data_in_dir, "cost_transshipments_to_destinations.csv"), index_col=0).values
@@ -145,16 +152,16 @@ def main():
         t_id = pd.read_csv(os.path.join(data_in_dir, "id_transshipments.csv"), header=None)
         d_id = pd.read_csv(os.path.join(data_in_dir, "id_destinations.csv"), header=None)
         solve.save_result(opt_val, opt_o_to_d, opt_o_to_t, opt_t_to_d, opt_t_to_t, data_out_dir, o_id, d_id, t_id)
-
+        solve_status_lbl.configure(text="Optimized !")
     run_btn = Button(window, text="Optimize", command=run_btn_clicked)
     run_btn.grid(column=0 + col_0, row=1 + row_0, columnspan=3)
 
     """
     Step 4: Export result
     """
-    row_0 = 14
+    row_0 = 16
     col_0 = 0
-    stp_3_lbl = Label(window, text="Export Solution", font=("Arial Bold", 15))
+    stp_3_lbl = Label(window, text="Export solution", font=("Arial Bold", 15))
     stp_3_lbl.grid(row=0 + row_0, column=0 + col_0, columnspan=3)
 
     export_dir_lbl = Label(window, text="Folder: ")
@@ -196,6 +203,20 @@ def main():
 
     export_csv_btn = Button(window, text="to .csv", command=export_csv_btn_clicked)
     export_csv_btn.grid(row=3 + row_0, column=1 + col_0, columnspan=2)
+
+    """
+    Footer
+    """
+    row_0 = 20
+    col_0 = 0
+    space_lbl = Label(window, text="")
+    space_lbl.grid(row=0 + row_0, column=0 + col_0, columnspan=3)
+    name_lbl = Label(window, text="Christian Carballo Lozano", font=("Arial Bold", 12))
+    name_lbl.grid(row=1 + row_0, column=0 + col_0)
+    github_lbl = Label(window, text="GitHub: ccarballolozano", font=("Arial Bold", 12))
+    github_lbl.grid(row=1 + row_0, column=1 + col_0)
+    email_lbl = Label(window, text="ccarballolozano@gmail.com", font=("Arial Bold", 12))
+    email_lbl.grid(row=1 + row_0, column=2 + col_0)
 
     window.mainloop()
 

@@ -3,7 +3,9 @@ from cx_Freeze import setup, Executable
 import os
 
 # Dependencies are automatically detected, but it might need fine tuning.
-build_exe_options = {"packages": ["os", "tkinter", "functions", "numpy", "scipy"], "excludes": []}
+build_exe_options = {"packages": ["os", "tkinter", "functions", "numpy", "scipy"],
+                     "excludes": [],
+                     "include_files": ["examples"]}
 
 # GUI applications require a different base on Windows (the default is for a
 # console application).
@@ -14,10 +16,9 @@ if sys.platform == "win32":
     PYTHON_INSTALL_DIR = os.path.dirname(os.path.dirname(os.__file__))
     os.environ['TCL_LIBRARY'] = os.path.join(PYTHON_INSTALL_DIR, 'tcl', 'tcl8.6')
     os.environ['TK_LIBRARY'] = os.path.join(PYTHON_INSTALL_DIR, 'tcl', 'tk8.6')
-    build_exe_options['include_files'] = [
-            os.path.join(PYTHON_INSTALL_DIR, 'DLLs', 'tk86t.dll'),
-            os.path.join(PYTHON_INSTALL_DIR, 'DLLs', 'tcl86t.dll'),
-        ]
+    build_exe_options['include_files'] = build_exe_options['include_files'] + \
+                                         [os.path.join(PYTHON_INSTALL_DIR, 'DLLs', 'tk86t.dll'),
+                                          os.path.join(PYTHON_INSTALL_DIR, 'DLLs', 'tcl86t.dll')]
 
 setup(name="transshipment-problem-solver",
       version="0.1",
