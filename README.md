@@ -17,7 +17,7 @@ transshipment-problem-solver is a solver for the transshipment problem which all
      Paris France,,,3000,1.5
      Berlin Germany,,,3000,2
      ```
-   - Transshipments: A csv file with data of the transsipments.
+   - Transshipments: A csv file with data of the transshipments.
      ```
      name,latitude,longitude,supply,demand,costperkm
      Zaragoza Spain,,,1275,900,0.5
