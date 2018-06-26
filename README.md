@@ -77,7 +77,7 @@ transshipment-problem-solver is a solver for the transshipment problem which all
 
    Push the button to solve the problem. If everything went well, a success message will appear.
    
-   Frequent non success results.
+   Frequent non success results include.
    
    - Problem infeasible:
    
@@ -85,39 +85,35 @@ transshipment-problem-solver is a solver for the transshipment problem which all
      - Supply is greater than demand, but because of the capacities some points cannot receive all the required demand.
      - Some connections are not well: point not well defined (f.e., Bilbao is not valid since they are multiple places, so we put Bilbao Spain or Bilbao Basque Country Spain) or a path not possible by car (f.e., from New York to . 
 
+4. Export results
+   
+   Choose folder and name (without extension) to export the results and push to .csv and/or to .xls to get the results file(s) in the desired location.
 
----------
+## Alternative usage
 
-* data_in/
+It is not necessary to work using the Google Maps DistanceMatrix API. Actually, this step's goal is to create the necessary files to run the program by taking into account the distances and costs between points. 
+
+If you want to create your custom files (costs, capacities, ...) just skip the build data step and start at step 3, in edit data. In the opened folder, you need to create/paste the necessary files, that are:
+  
   * id_origins.csv
   * id_destinations.csv
   * id_transshipments.csv
+  * cost_origins_to_destinations.csv
+  * cost_origins_to_transshipments.csv
+  * cost_transshipments_to_destinations.csv
+  * cost_transshipments_to_transshipments.csv
+  * supply_origins.csv
+  * supply_transshipments.csv
+  * demand_destinations.csv
+  * demand_transshipments.csv
   * capacity_origins_to_destinations.csv
   * capacity_origins_to_transshipments.csv
   * capacity_transshipments_to_destinations.csv
   * capacity_transshipments_to_transshipments.csv
  
-To use the Google Maps Distance Matrix API method, the files that must be provided are different, and will automatically create the previous ones. The files that are needed are:
+## Generated data
 
-* data_in/
-  * origins.csv
-  * destinations.csv
-  * transshipments.csv
-
-* distancematrix_api_key.txt
-
-To run the algorithm from manually added data, call
-
-```bash
-python transshipment-problem-solver.py
-```
-
-To run the algorithm in the maps mode, call
-``` bash
-python transshipment-problem-solver.py -g "maps"
-```
-
-The algorithm outputs the results
+When running the program, some data is generated (appart from the input data):
 
 * data_out/
   * opt_all.csv
