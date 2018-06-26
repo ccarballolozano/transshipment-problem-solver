@@ -19,8 +19,8 @@ if sys.platform == "win32":
             os.path.join(PYTHON_INSTALL_DIR, 'DLLs', 'tcl86t.dll'),
         ]
 
-setup(name = "main",
-      version = "0.1",
-      description = "My GUI application!",
-      options = {"build_exe": build_exe_options},
-      executables = [Executable("main.py", base=base)])
+setup(name="main",
+      version="0.1",
+      description="My GUI application!",
+      options={"build_exe": build_exe_options},
+      executables=[Executable("main.py", base=base)])
