@@ -152,7 +152,7 @@ def main():
         t_id = pd.read_csv(os.path.join(data_in_dir, "id_transshipments.csv"), header=None)
         d_id = pd.read_csv(os.path.join(data_in_dir, "id_destinations.csv"), header=None)
         solve.save_result(opt_val, opt_o_to_d, opt_o_to_t, opt_t_to_d, opt_t_to_t, data_out_dir, o_id, d_id, t_id)
-        solve_status_lbl.configure(text="Optimized !")
+        solve_status_lbl.configure(text=msg)
     run_btn = Button(window, text="Optimize", command=run_btn_clicked)
     run_btn.grid(column=0 + col_0, row=1 + row_0, columnspan=3)
 
