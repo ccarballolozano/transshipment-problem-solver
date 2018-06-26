@@ -8,7 +8,7 @@ transshipment-problem-solver is a solver for the transshipment problem which all
   
 2. Buid data
 
-   Provide the data where requested.
+   Provide the data where requested and then push the button.
    
    - Origins: A csv file with data of the origins.
      ```
@@ -48,6 +48,43 @@ transshipment-problem-solver is a solver for the transshipment problem which all
     Note 2: "latitude" and "longitude" is not provided because "name" is enough to run. The longer the name, the better for the software.
     
     Note 3: The API key I provide is my free one, so can be used with limitations. Better to get your own one.
+
+3. Edit data
+   
+   If you want to edit any data that was built at step 2, open the file and edit manually. A typical edit would be to restrict the amount of goods that can be sent from an origin/transshipment to a transshipment/destination, also called capacities, since all are set to infinity by default.
+   
+   For example, to set the capacity from the origin Bilbao to the transshipment Toulouse to 2000, open the file capacity_origins_to_transshipments.csv, which by default looks like  
+   ```
+   ,Zaragoza,Oporto,Toulouse,Lyon,Turin,Francfort,Zurich
+   Bilbao,inf,inf,inf,inf,inf,inf,inf
+   Paris,inf,inf,inf,inf,inf,inf,inf
+   Berlin,inf,inf,inf,inf,inf,inf,inf
+   ```
+   and modyfy the desired capacity, in our particular case
+   ```
+   ,Zaragoza,Oporto,Toulouse,Lyon,Turin,Francfort,Zurich
+   Bilbao,inf,inf,2000,inf,inf,inf,inf
+   Paris,inf,inf,inf,inf,inf,inf,inf
+   Berlin,inf,inf,inf,inf,inf,inf,inf
+   ```
+  Now, even if Bilbao had a supply of 4000, it could only send to Toulouse maximum ammount of 2000.
+  
+  Note 1: Be careful if you edit the names (not recommended), since those will have to coincide at every file.
+  
+  Note 2: To get an integer solution, do not set capacities to non integer quantities (which actually would not really make sense).
+  
+3. Get the optimal solution
+
+   Push the button to solve the problem. If everything went well, a success message will appear.
+   
+   Frequent non success results.
+   
+   - Problem infeasible:
+   
+     - Supply is not greater than demand, so requirements cannot be satisfied.
+     - Supply is greater than demand, but because of the capacities some points cannot receive all the required demand.
+     - Some connections are not well: point not well defined (f.e., Bilbao is not valid since they are multiple places, so we put Bilbao Spain or Bilbao Basque Country Spain) or a path not possible by car (f.e., from New York to . 
+
 
 ---------
 
