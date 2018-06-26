@@ -1,294 +1,203 @@
-from scipy.optimize import linprog
-import numpy as np
-import pandas as pd
+from tkinter import *
+from tkinter import filedialog
 import os
-from functions import getmethod, exportmethod
-import argparse
+from functions import getmethod, solve
+import webbrowser
+import pandas as pd
+import shutil
 
 
-def _parse_input_data(in_data_folder):
+def main():
+    # root_dir = os.path.dirname(os.path.abspath(__file__))
+    root_dir = os.getcwd()
+    data_in_dir_rel = "data_in"
+    data_out_dir_rel = "data_out"
+    data_in_dir = os.path.join(root_dir, data_in_dir_rel)
+    data_out_dir = os.path.join(root_dir, data_out_dir_rel)
+
+    window = Tk()
+
+    window.title("Transshipment solver")
+
+    #window.geometry('350x200')
+
+    ##############
+
     """
-    Returns values needed to build the model
+    HEADER.
     """
-    o_to_d = pd.read_csv(os.path.join(
-        in_data_folder, "cost_origins_to_destinations.csv"), header=None)
-    o_to_d = o_to_d.values
-    o_to_t = pd.read_csv(os.path.join(
-        in_data_folder, "cost_origins_to_transshipments.csv"), header=None)
-    o_to_t = o_to_t.values
-    t_to_t = pd.read_csv(os.path.join(
-        in_data_folder, "cost_transshipments_to_transshipments.csv"), header=None)
-    t_to_t = t_to_t.values
-    t_to_d = pd.read_csv(os.path.join(
-        in_data_folder, "cost_transshipments_to_destinations.csv"), header=None)
-    t_to_d = t_to_d.values
-    o_prod = pd.read_csv(os.path.join(
-        in_data_folder, "production_origins.csv"), header=None)
-    o_prod = o_prod.values.reshape((-1))
-    t_prod = pd.read_csv(os.path.join(
-        in_data_folder, "production_transshipments.csv"), header=None)
-    t_prod = t_prod.values.reshape((-1))
-    d_dem = pd.read_csv(os.path.join(
-        in_data_folder, "demand_destinations.csv"), header=None)
-    d_dem = d_dem.values.reshape((-1))
-    t_dem = pd.read_csv(os.path.join(
-        in_data_folder, "demand_transshipments.csv"), header=None)
-    t_dem = t_dem.values.reshape((-1))
-    n_o = o_to_d.shape[0]
-    n_d = o_to_d.shape[1]
-    n_t = o_to_t.shape[1]
-    # productions and demands from transshipments can be made net
-    for i in range(len(t_prod)):
-        if t_prod[i] >= t_dem[i]:
-            t_prod[i] = t_prod[i] - t_dem[i]
-            t_dem[i] = 0
-        else:
-            t_prod[i] = 0
-            t_dem[i] = t_dem[i] - t_prod[i]
-    # now add L value which arises from transshipment to transportation
-    L = np.sum(o_prod) + np.sum(t_prod)
-    t_prod = t_prod + L
-    t_dem = t_dem + L
-    if os.path.isfile(os.path.join(in_data_folder, "id_origins.csv")):
-        df = pd.read_csv(os.path.join(
-            in_data_folder, "id_origins.csv"), header=None, delimiter=",")
-        o_id = []
-        for i in range(df.shape[1]):
-            o_id.append(df.iloc[0, i])
-    else:
-        o_id = ["O" + str(i + 1) for i in range(n_o)]
-    if os.path.isfile(os.path.join(in_data_folder, "id_destinations.csv")):
-        df = pd.read_csv(os.path.join(
-            in_data_folder, "id_destinations.csv"), header=None, delimiter=",")
-        d_id = []
-        for i in range(df.shape[1]):
-            d_id.append(df.iloc[0, i])
-    else:
-        d_id = ["D" + str(i + 1) for i in range(n_d)]
-    if os.path.isfile(os.path.join(in_data_folder, "id_transshipments.csv")):
-        df = pd.read_csv(os.path.join(
-            in_data_folder, "id_transshipments.csv"), header=None, delimiter=",")
-        t_id = []
-        for i in range(df.shape[1]):
-            t_id.append(df.iloc[0, i])
-    else:
-        t_id = ["T" + str(i + 1) for i in range(n_t)]
-    # Edges capacities
-    if os.path.isfile(os.path.join(in_data_folder, "capacity_origins_to_destinations.csv")):
-        df = pd.read_csv(os.path.join(
-            in_data_folder, "capacity_origins_to_destinations.csv"), header=None, delimiter=",")
-        o_to_d_cap = df.values
-    else:
-        o_to_d_cap = np.full((n_o, n_d), np.inf)
-    if os.path.isfile(os.path.join(in_data_folder, "capacity_origins_to_transshipments.csv")):
-        df = pd.read_csv(os.path.join(
-            in_data_folder, "capacity_origins_to_transshipments.csv"), header=None, delimiter=",")
-        o_to_t_cap = df.values
-    else:
-        o_to_t_cap = np.full((n_o, n_t), np.inf)
-    if os.path.isfile(os.path.join(in_data_folder, "capacity_transsipments_to_destinations.csv")):
-        df = pd.read_csv(os.path.join(
-            in_data_folder, "capacity_transshipments_to_destinations.csv"), header=None, delimiter=",")
-        t_to_d_cap = df.values
-    else:
-        t_to_d_cap = np.full((n_t, n_d), np.inf)
-    if os.path.isfile(os.path.join(in_data_folder, "capacity_transshipments_to_transshipments.csv")):
-        df = pd.read_csv(os.path.join(
-            in_data_folder, "capacity_transshipments_to_transshipments.csv"), header=None, delimiter=",")
-        t_to_t_cap = df.values
-    else:
-        t_to_t_cap = np.full((n_t, n_t), np.inf)
-    return o_to_d, o_to_t, t_to_t, t_to_d, o_prod, t_prod, d_dem, t_dem, n_o, n_d, n_t, L, o_id, d_id, t_id, o_to_d_cap, o_to_t_cap, t_to_d_cap, t_to_t_cap
+    row_0 = 0
+    col_0 = 0
+    header_lbl = Label(window, text="Solve your supply chain")
+    header_lbl.grid(row=row_0, column=col_0, columnspan=2)
+    header_email_label = Label(window, text="ccarballolozano@gmail.com")
+    header_email_label.grid(row=row_0, column=2 + col_0)
 
-# First are origins, then transshipments and finally destinations
-
-
-def _build_coefficients(o_to_d, o_to_t, t_to_d, t_to_t):
     """
-    Returns a 1-D array with coefficients
-    O1D1,...,O1Dn,O1T1,...,O1Ts,O2D1,...O2Ts,...OmTs,T1D1,...T1Ts,...TsD1,...,TsDs
+    INPUT FROM MAPS DISTANCEMATRIX API.
     """
-    c = o_to_d
-    c = np.concatenate((c, o_to_t), axis=1)
-    aux = np.concatenate((t_to_d, t_to_t), axis=1)
-    c = np.concatenate((c, aux), axis=0)
-    c = c.reshape((-1))
-    return c
+    row_0 = 2
+    col_0 = 0
 
+    stp_1_lbl = Label(window, text="Build Data from Maps API (skip if manually)", font=("Arial Bold", 15))
+    stp_1_lbl.grid(column=0, row=0 + row_0, columnspan=3)
 
-def _build_constraint_1(n_o, n_d, n_t, o_prod):
+    o_lbl = Label(window, text="Origins: ")
+    o_lbl.grid(column=0 + col_0, row=1 + row_0)
+    o_entry = Entry(window, width=30)
+    o_entry.grid(column=1 + col_0, row=1 + row_0)
+
+    def o_btn_clicked():
+        ask = filedialog.askopenfilename()
+        if ask is not () or ask != "":
+            o_entry.delete(0, END)
+            o_entry.insert(0, ask)
+
+    o_btn = Button(window, text="Select csv", command=o_btn_clicked)
+    o_btn.grid(column=2 + col_0, row=1 + row_0)
+
+    t_lbl = Label(window, text="Transshipments: ")
+    t_lbl.grid(column=0 + col_0, row=2 + row_0)
+    t_entry = Entry(window, width=30)
+    t_entry.grid(column=1 + col_0, row=2 + row_0)
+
+    def t_btn_clicked():
+        ask = filedialog.askopenfilename()
+        if ask is not () or ask != "":
+            t_entry.delete(0, END)
+            t_entry.insert(0, ask)
+
+    t_btn = Button(window, text="Select csv", command=t_btn_clicked)
+    t_btn.grid(column=2 + col_0, row=2 + row_0)
+
+    d_lbl = Label(window, text="Destinations")
+    d_lbl.grid(column=0 + col_0, row=3 + row_0)
+    d_entry = Entry(window, width=30)
+    d_entry.grid(column=1 + col_0, row=3 + row_0)
+
+    def d_btn_clicked():
+        ask = filedialog.askopenfilename()
+        if ask is not () or ask != "":
+            d_entry.delete(0, END)
+            d_entry.insert(0, ask)
+
+    d_btn = Button(window, text="Select csv", command=d_btn_clicked)
+    d_btn.grid(column=2 + col_0, row=3 + row_0)
+
+    key_lbl = Label(window, text="DistanceMatrix API Key: ")
+    key_lbl.grid(column=0 + col_0, row=4 + row_0)
+    key_entry = Entry(window, width=30)
+    key_entry.grid(column=1 + col_0, row=4 + row_0)
+
+    def go_btn_clicked():
+        global data_in_dir
+        getmethod.from_maps_api(key_entry.get(), o_entry.get(), d_entry.get(), t_entry.get(), data_in_dir)
+
+    go_btn = Button(window, text="Build Data", command=go_btn_clicked)
+    go_btn.grid(row=5 + row_0, column=0 + col_0, columnspan=3)
+
     """
-    Production at origins
+    EDIT INPUTS
     """
-    n_vars = (n_o + n_t) * (n_d + n_t)
-    b_ub_1 = o_prod
-    A_ub_1 = np.zeros(shape=(n_o, n_vars))
-    for i in range(n_o):
-        # origin i to destinations
-        A_ub_1[i, (i * (n_d + n_t)): (i * (n_d + n_t) + n_d)] = 1
-        # origin i to transshipments
-        A_ub_1[i, (i * (n_d + n_t) + n_d): (i * (n_d + n_t) + n_d + n_t)] = 1
-    return A_ub_1, b_ub_1
+    row_0 = 8
+    col_0 = 0
+    stp_2_lbl = Label(window, text="Add data manually or edit the built one", font=("Arial Bold", 15))
+    stp_2_lbl.grid(row=row_0, column=col_0, columnspan=3)
+    stp_2_lbl_1 = Label(window, text="(i) Coming from Step 1, modify created files")
+    stp_2_lbl_1.grid(row=row_0 + 1, column=col_0, columnspan=3)
+    stp_2_lbl_2 = Label(window, text="(ii) If not, manually paste necessary data, see documentation")
+    stp_2_lbl_2.grid(row=row_0 + 2, column=col_0, columnspan=3)
 
+    def edit_btn_clicked():
+        global data_in_dir
+        webbrowser.open(data_in_dir)
 
-def _build_constraint_2(n_o, n_d, n_t, t_prod):
+    edit_btn = Button(window, text="Edit Data", command=edit_btn_clicked)
+    edit_btn.grid(column=col_0, row=3 + row_0, columnspan=3)
+
     """
-    Production at transshipments.
+    Step 3: Solve
     """
-    n_vars = (n_o + n_t) * (n_d + n_t)
-    b_ub_2 = t_prod
-    A_ub_2 = np.zeros(shape=(n_t, n_vars))
-    for i in range(n_t):
-        # transshipment i to destinations
-        A_ub_2[i, ((n_o + i) * (n_d + n_t)):
-               ((n_o + i) * (n_d + n_t) + n_d)] = 1
-        # transshipment i to transshipments
-        A_ub_2[i, ((n_o + i) * (n_d + n_t) + n_d):
-               ((n_o + i) * (n_d + n_t) + n_d + n_t)] = 1
-    return A_ub_2, b_ub_2
+    row_0 = 12
+    col_0 = 0
+    stp_3_lbl = Label(window, text="Get the optimal solution", font=("Arial Bold", 15))
+    stp_3_lbl.grid(row=0 + row_0, column=0 + col_0, columnspan=3)
 
+    def run_btn_clicked():
+        global data_in_dir
+        global data_out_dir
+        o_to_d = pd.read_csv(os.path.join(data_in_dir, "cost_origins_to_destinations.csv"), index_col=0).values
+        o_to_t = pd.read_csv(os.path.join(data_in_dir, "cost_origins_to_transshipments.csv"), index_col=0).values
+        t_to_d = pd.read_csv(os.path.join(data_in_dir, "cost_transshipments_to_destinations.csv"), index_col=0).values
+        t_to_t = pd.read_csv(os.path.join(data_in_dir, "cost_transshipments_to_transshipments.csv"), index_col=0).values
+        o_sup = pd.read_csv(os.path.join(data_in_dir, "supply_origins.csv"), index_col=0).values
+        t_sup = pd.read_csv(os.path.join(data_in_dir, "supply_transshipments.csv"), index_col=0).values
+        d_dem = pd.read_csv(os.path.join(data_in_dir, "demand_destinations.csv"), index_col=0).values
+        t_dem = pd.read_csv(os.path.join(data_in_dir, "demand_transshipments.csv"), index_col=0).values
+        o_to_d_cap = pd.read_csv(os.path.join(data_in_dir, "capacity_origins_to_destinations.csv"), index_col=0).values
+        o_to_t_cap = pd.read_csv(os.path.join(data_in_dir, "capacity_origins_to_transshipments.csv"), index_col=0).values
+        t_to_d_cap = pd.read_csv(os.path.join(data_in_dir, "capacity_transshipments_to_destinations.csv"), index_col=0).values
+        t_to_t_cap = pd.read_csv(os.path.join(data_in_dir, "capacity_transshipments_to_transshipments.csv"), index_col=0).values
+        opt_val, opt_o_to_d, opt_o_to_t, opt_t_to_d, opt_t_to_t, msg = solve.build_and_solve(
+            o_to_d, o_to_t, t_to_t, t_to_d, o_sup, t_sup, d_dem, t_dem, o_to_d_cap, o_to_t_cap, t_to_d_cap, t_to_t_cap)
+        o_id = pd.read_csv(os.path.join(data_in_dir, "id_origins.csv"), header=None)
+        t_id = pd.read_csv(os.path.join(data_in_dir, "id_transshipments.csv"), header=None)
+        d_id = pd.read_csv(os.path.join(data_in_dir, "id_destinations.csv"), header=None)
+        solve.save_result(opt_val, opt_o_to_d, opt_o_to_t, opt_t_to_d, opt_t_to_t, data_out_dir, o_id, d_id, t_id)
 
-def _build_constraint_3(n_o, n_d, n_t, d_dem):
-    n_vars = (n_o + n_t) * (n_d + n_t)
-    b_eq_1 = d_dem
-    A_eq_1 = np.zeros(shape=(n_d, n_vars))
-    for i in range(n_d):
-        # origins to destination i
-        for j in range(n_o):
-            A_eq_1[i, j * (n_d + n_t) + i] = 1  # origin j
-        # transshipments to destination i
-        for j in range(n_t):
-            A_eq_1[i, (n_o + j) * (n_d + n_t) + i] = 1  # transshipment j
-    return A_eq_1, b_eq_1
+    run_btn = Button(window, text="Optimize", command=run_btn_clicked)
+    run_btn.grid(column=0 + col_0, row=1 + row_0, columnspan=3)
 
-
-def _build_constraint_4(n_o, n_d, n_t, t_dem):
-    n_vars = (n_o + n_t) * (n_d + n_t)
-    b_eq_2 = t_dem
-    A_eq_2 = np.zeros(shape=(n_t, n_vars))
-    for i in range(n_t):
-        # origins to transshipment i
-        for j in range(n_o):
-            A_eq_2[i, j * (n_d + n_t) + n_d + i] = 1  # origin j
-        # transshipments to transshipmment i
-        for j in range(n_t):
-            A_eq_2[i, (n_o + j) * (n_d + n_t) + n_d + i] = 1  # transshipment j
-    return A_eq_2, b_eq_2
-
-
-def _build_bounds(o_to_d_cap, o_to_t_cap, t_to_d_cap, t_to_t_cap):
-    upper_bounds = o_to_d_cap
-    upper_bounds = np.concatenate((upper_bounds, o_to_t_cap), axis=1)
-    aux = np.concatenate((t_to_d_cap, t_to_t_cap), axis=1)
-    upper_bounds = np.concatenate((upper_bounds, aux), axis=0)
-    upper_bounds = upper_bounds.reshape((-1))
-    lower_bounds = np.full_like(upper_bounds, 0, dtype=np.int8)
-    return list(zip(lower_bounds, upper_bounds))
-
-
-def _join_constraints(A_ub_1, A_ub_2, A_eq_1, A_eq_2, b_ub_1, b_ub_2, b_eq_1, b_eq_2):
-    A_ub = np.concatenate((A_ub_1, A_ub_2), axis=0)
-    b_ub = np.concatenate((b_ub_1, b_ub_2), axis=0)
-    A_eq = np.concatenate((A_eq_1, A_eq_2), axis=0)
-    b_eq = np.concatenate((b_eq_1, b_eq_2), axis=0)
-    return A_ub, A_eq, b_ub, b_eq
-
-
-def build_and_solve(o_to_d, o_to_t, t_to_t, t_to_d, o_prod, t_prod, d_dem, t_dem, n_o, n_d, n_t, L, o_to_d_cap, o_to_t_cap, t_to_d_cap, t_to_t_cap):
-    c = _build_coefficients(o_to_d, o_to_t, t_to_d, t_to_t)
-    A_ub_1, b_ub_1 = _build_constraint_1(n_o, n_d, n_t, o_prod)
-    A_ub_2, b_ub_2 = _build_constraint_2(n_o, n_d, n_t, t_prod)
-    A_eq_1, b_eq_1 = _build_constraint_3(n_o, n_d, n_t, d_dem)
-    A_eq_2, b_eq_2 = _build_constraint_4(n_o, n_d, n_t, t_dem)
-    A_ub, A_eq, b_ub, b_eq = _join_constraints(
-        A_ub_1, A_ub_2, A_eq_1, A_eq_2, b_ub_1, b_ub_2, b_eq_1, b_eq_2)
-    bounds = _build_bounds(o_to_d_cap, o_to_t_cap, t_to_d_cap, t_to_t_cap)
-    """ When errors arise, check this 
-    np.savetxt("c.csv", c, fmt="%i", delimiter=",")
-    np.savetxt("A_ub_1.csv", A_ub_1, fmt="%i", delimiter=",")
-    np.savetxt("A_ub_2.csv", A_ub_2, fmt="%i", delimiter=",")
-    np.savetxt("A_eq_1.csv", A_eq_1, fmt="%i", delimiter=",")
-    np.savetxt("A_eq_2.csv", A_eq_2, fmt="%i", delimiter=",")
-    np.savetxt("b_ub_1.csv", b_ub_1, fmt="%i", delimiter=",")
-    np.savetxt("b_ub_2.csv", b_ub_2, fmt="%i", delimiter=",")
-    np.savetxt("b_eq_1.csv", b_eq_1, fmt="%i", delimiter=",")
-    np.savetxt("b_eq_2.csv", b_eq_2, fmt="%i", delimiter=",")
     """
-    res = linprog(c, A_ub, b_ub, A_eq, b_eq, bounds, method="simplex")
-    status_options = {0: "Optimization terminated successfully",
-                      1: "Iteration limit reached",
-                      2: "Problem appears to be infeasible",
-                      3: "Problem appears to be unbounded"}
-    if res.success:
-        print("Optimization terminated successfully")
-        opt_val = res.fun
-        print("Optimal value is %f" % (opt_val))
-        res_x = np.array(res.x)
-        res_x = res_x.reshape((n_o + n_t, n_d + n_t))
-        opt_o_to_d = res_x[: n_o, : n_d]
-        opt_o_to_t = res_x[: n_o, n_d:]
-        opt_t_to_d = res_x[n_o:, : n_d]
-        opt_t_to_t = res_x[n_o:, n_d:]
-        # Substract L to the variables affected by the variable change
-        for i in range(opt_t_to_t.shape[0]):
-            opt_t_to_t[i, i] = L - opt_t_to_t[i, i]
-        return opt_val, opt_o_to_d, opt_o_to_t, opt_t_to_d, opt_t_to_t
-    else:
-        print(status_options[res.status])
-        return -1, -1, -1, -1, -1
+    Step 4: Export result
+    """
+    row_0 = 14
+    col_0 = 0
+    stp_3_lbl = Label(window, text="Export Solution", font=("Arial Bold", 15))
+    stp_3_lbl.grid(row=0 + row_0, column=0 + col_0, columnspan=3)
 
+    export_dir_lbl = Label(window, text="Folder: ")
+    export_dir_lbl.grid(row=1 + row_0, column=0 + col_0)
+    export_dir_entry = Entry(window, width=15)
+    export_dir_entry.grid(row=1 + row_0, column=1 + col_0)
 
-def _output_results(out_data_folder, opt_val, opt_o_to_d, opt_o_to_t, opt_t_to_d, opt_t_to_t):
-    if not os.path.exists(out_data_folder):
-        os.makedirs(out_data_folder)
-    np.savetxt(os.path.join(out_data_folder, "opt_value.csv"),
-               np.array(opt_val).reshape((-1)), fmt="%.1f", delimiter=",")
-    np.savetxt(os.path.join(out_data_folder, "opt_origins_to_destinations.csv"),
-               opt_o_to_d, fmt="%.1f", delimiter=",")
-    np.savetxt(os.path.join(out_data_folder, "opt_origins_to_transshipments.csv"),
-               opt_o_to_t, fmt="%.1f", delimiter=",")
-    np.savetxt(os.path.join(out_data_folder, "opt_transshipments_to_destinations.csv"),
-               opt_t_to_d, fmt="%.1f", delimiter=",")
-    np.savetxt(os.path.join(out_data_folder, "opt_transshipments_to_transshipments.csv"),
-               opt_t_to_t, fmt="%.1f", delimiter=",")
+    def export_dir_btn_clicked():
+        ask = filedialog.askdirectory()
+        export_dir_entry.delete(0, END)
+        export_dir_entry.insert(0, ask)
 
+    export_dir_btn = Button(window, text="Select folder", command=export_dir_btn_clicked)
+    export_dir_btn.grid(row=1 + row_0, column=2 + col_0)
 
-def parse_arguments():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("-g", "--getmethod",
-                        help="get data method", type=str, default="default")
-    parser.add_argument("-k", "--keyfile",
-                        help="maps distancematrix API key file", type=str, default="distancematrix_api_key.txt")
-    return parser.parse_args()
+    export_name_lbl = Label(window, text="Name: ")
+    export_name_lbl.grid(row=2 + row_0, column=0 + col_0)
+    export_name_entry = Entry(window, width=15)
+    export_name_entry.grid(row=2 + row_0, column=1 + col_0)
 
+    def export_xlsx_btn_clicked():
+        global data_out_dir
+        export_dir = export_dir_entry.get()
+        export_name = export_name_entry.get()
+        from_file = os.path.join(data_out_dir, 'opt_all.xlsx')
+        to_file = os.path.join(export_dir, export_name) + '.xlsx'
+        shutil.copy(from_file, to_file)
 
-def main(args):
-    print("Getting data...", flush=True)
-    if args.getmethod == "default":
-        pass
-    elif args.getmethod == "maps":
-        getmethod.from_maps_api(args.keyfile, "data_in", "data_in")
-    else:
-        print("Not a valid get data method", flush=True)
-        return
-    o_to_d, o_to_t, t_to_t, t_to_d, o_prod, t_prod, d_dem, t_dem, n_o, n_d, n_t, L, o_id, d_id, t_id, o_to_d_cap, o_to_t_cap, t_to_d_cap, t_to_t_cap = _parse_input_data(
-        "data_in")
-    print("Done!", flush=True)
-    print("Building and solving the model...", flush=True)
-    opt_val, opt_o_to_d, opt_o_to_t, opt_t_to_d, opt_t_to_t = build_and_solve(
-        o_to_d, o_to_t, t_to_t, t_to_d, o_prod, t_prod, d_dem, t_dem, n_o, n_d, n_t, L, o_to_d_cap, o_to_t_cap, t_to_d_cap, t_to_t_cap)
-    print("Done!", flush=True)
-    if opt_val == -1:
-        return
-    else:
-        pass
-    print("Exporting resuilts...", flush=True)
-    _output_results("data_out", opt_val, opt_o_to_d, opt_o_to_t, opt_t_to_d, opt_t_to_t)
-    exportmethod.to_complete_file("data_out", o_id, d_id, t_id)
-    print("Done!", flush=True)
-    return
+    export_xlsx_btn = Button(window, text="to .xlsx", command=export_xlsx_btn_clicked)
+    export_xlsx_btn.grid(row=3 + row_0, column=0 + col_0, columnspan=2)
+
+    def export_csv_btn_clicked():
+        global data_out_dir
+        export_dir = export_dir_entry.get()
+        export_name = export_name_entry.get()
+        from_file = os.path.join(data_out_dir, 'opt_all.csv')
+        to_file = os.path.join(export_dir, export_name) + '.csv'
+        shutil.copy(from_file, to_file)
+
+    export_csv_btn = Button(window, text="to .csv", command=export_csv_btn_clicked)
+    export_csv_btn.grid(row=3 + row_0, column=1 + col_0, columnspan=2)
+
+    window.mainloop()
 
 
 if __name__ == "__main__":
-    args = parse_arguments()
-    main(args)
+    main()
