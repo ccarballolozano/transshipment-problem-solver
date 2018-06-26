@@ -3,7 +3,10 @@
 venv/
 *.pyc
 __pycache__/
-/data_in/
-/data_out/
+/data_in/*.csv
+/data_in/*.xlsx
+/data_out/*.csv
+/data_out/*.xlsx
 distancematrix_api_key.txt
 .idea/
+build/
