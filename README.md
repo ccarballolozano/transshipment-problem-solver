@@ -110,7 +110,9 @@ If you want to create your custom files (costs, capacities, ...) just skip the b
   * capacity_origins_to_transshipments.csv
   * capacity_transshipments_to_destinations.csv
   * capacity_transshipments_to_transshipments.csv
- 
+
+Take a look to the folder examples/input_for_direct_add to see the structure of the files or you can see the files created when building from the Buid data step.
+
 ## Generated data
 
 When running the program, some data is generated (appart from the input data):
