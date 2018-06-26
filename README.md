@@ -60,20 +60,20 @@ transshipment-problem-solver is a solver for the transshipment problem which all
    Paris,inf,inf,inf,inf,inf,inf,inf
    Berlin,inf,inf,inf,inf,inf,inf,inf
    ```
-   and modyfy the desired capacity, in our particular case
+   and modify the desired capacity, in our particular case
    ```
    ,Zaragoza,Oporto,Toulouse,Lyon,Turin,Francfort,Zurich
    Bilbao,inf,inf,2000,inf,inf,inf,inf
    Paris,inf,inf,inf,inf,inf,inf,inf
    Berlin,inf,inf,inf,inf,inf,inf,inf
    ```
-  Now, even if Bilbao had a supply of 4000, it could only send to Toulouse maximum ammount of 2000.
+  Now, even if Bilbao had a supply of 4000, it could only send to Toulouse maximum amount of 2000.
   
   Note 1: Be careful if you edit the names (not recommended), since those will have to coincide at every file.
   
   Note 2: To get an integer solution, do not set capacities to non integer quantities (which actually would not really make sense).
   
-3. Get the optimal solution
+4. Get the optimal solution
 
    Push the button to solve the problem. If everything went well, a success message will appear.
    
@@ -83,9 +83,9 @@ transshipment-problem-solver is a solver for the transshipment problem which all
    
      - Supply is not greater than demand, so requirements cannot be satisfied.
      - Supply is greater than demand, but because of the capacities some points cannot receive all the required demand.
-     - Some connections are not well: point not well defined (f.e., Bilbao is not valid since they are multiple places, so we put Bilbao Spain or Bilbao Basque Country Spain) or a path not possible by car (f.e., from New York to . 
+     - Some connections are not well: point not well defined (e.g., Bilbao is not valid since they are multiple places, so we put Bilbao Spain or Bilbao Basque Country Spain) or a path not possible by car (e.g., from New York to . 
 
-4. Export results
+5. Export results
    
    Choose folder and name (without extension) to export the results and push to .csv and/or to .xls to get the results file(s) in the desired location.
 
@@ -115,7 +115,7 @@ Take a look to the folder examples/input_for_direct_add to see the structure of 
 
 ## Generated data
 
-When running the program, some data is generated (appart from the input data):
+When running the program, some data is automatically generated (apart from the input data):
 
 * data_out/
   * opt_all.csv
