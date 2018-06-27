@@ -5,7 +5,14 @@ transshipment-problem-solver is a solver for the transshipment problem which all
 ## Running instructions
 
 1. Run transshipment-problem-solver to open the GUI
+
+  Packages in requirements.txt need to be installed to run the program correctly. Using pip, those can be installed by
+  ```
+  pip install -r requirements.txt
+  ```
   
+  Note 1: Code is in Python 3, so depending on the system pip might be pip3. Creating a virtual environment and installing and running things inside it may be a good choice.
+
 2. Buid data
 
    Provide the data where requested and then push the button.
