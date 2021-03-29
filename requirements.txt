@@ -12,7 +12,7 @@ numpy==1.14.4
 openpyxl==2.5.4
 pandas==0.23.0
 pefile==2017.11.5
-Pygments==2.2.0
+Pygments==2.7.4
 pyparsing==2.2.0
 pypiwin32==223
 python-dateutil==2.7.3
