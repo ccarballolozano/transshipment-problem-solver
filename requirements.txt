@@ -21,4 +21,4 @@ pywin32==223
 requests==2.21.0
 scipy==1.1.0
 six==1.11.0
-urllib3==1.24.1
+urllib3==1.26.5
